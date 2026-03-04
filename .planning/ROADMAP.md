@@ -48,12 +48,12 @@ Plans:
   3. Partner can add, edit, and delete line items — the sale price, IVA, subtotal, grand total, total cost, and gross profit all recalculate automatically on every change
   4. All currency values display as $#,##0.00 MXN and all dates display in DD/MMM/YYYY format throughout the UI
   5. The full app is usable on a 375px-wide mobile screen with Spanish UI labels on every field, status, and navigation element
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: lib/calculations.ts and lib/formatters.ts — all financial formulas and MXN/date formatting as pure functions
-- [ ] 02-02: Project list and create/edit flow — Server Components + Server Actions; 6-stage pipeline status
-- [ ] 02-03: Project detail page with line item table — editable rows, auto-recalculating totals; mobile-responsive layout
+- [ ] 02-01-PLAN.md — Pure financial formulas (lib/calculations.ts) and formatters (lib/formatters.ts) with Vitest unit tests; IVA_RATE, DEFAULT_MARGEN, PIPELINE_STAGES constants
+- [ ] 02-02-PLAN.md — Project list, create, and edit flow; Supabase updated_at trigger migration; 6-stage ProjectStatusPipeline component; Server Actions + query helpers
+- [ ] 02-03-PLAN.md — Project detail page with editable LineItemTable, LineItemForm dialog, ProjectFinancialSummary; line item Server Actions; human verification checkpoint
 
 ### Phase 3: Pagos y Proveedores
 **Goal**: Partners can track every peso paid to them by clients and every peso owed to and paid to suppliers — with running balances that are always formula-driven
