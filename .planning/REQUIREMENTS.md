@@ -8,10 +8,10 @@
 ### Authentication & Roles (AUTH)
 
 - [ ] **AUTH-01**: User can log in with email and password (Supabase Auth)
-- [ ] **AUTH-02**: User session persists across browser refresh and page navigation
+- [x] **AUTH-02**: User session persists across browser refresh and page navigation
 - [x] **AUTH-03**: Admin role has full access to all features, data, and financial details
 - [x] **AUTH-04**: Accountant role has read-only access to cash flow and payment history — margins, supplier costs, and profit splits are never visible (enforced at DB level via RLS, not just UI)
-- [ ] **AUTH-05**: Unauthenticated users are redirected to login; role-based redirect sends admin to dashboard, accountant to their summary view
+- [x] **AUTH-05**: Unauthenticated users are redirected to login; role-based redirect sends admin to dashboard, accountant to their summary view
 
 ### Projects (PROJ)
 
@@ -91,8 +91,8 @@
 
 - [ ] **UX-01**: All UI labels, field names, status values, and navigation are in Spanish
 - [ ] **UX-02**: App is fully responsive and usable on mobile (minimum 375px width)
-- [ ] **UX-03**: Layout uses a dark sidebar for navigation and white content areas
-- [ ] **UX-04**: Palette is monochrome with subtle grays; no color accent beyond black/white/gray
+- [x] **UX-03**: Layout uses a dark sidebar for navigation and white content areas
+- [x] **UX-04**: Palette is monochrome with subtle grays; no color accent beyond black/white/gray
 - [ ] **UX-05**: Every financial calculation is formula-driven — no hardcoded values anywhere in the codebase
 
 ## v2 Requirements
@@ -132,12 +132,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
+| AUTH-02 | Phase 1 | Complete (01-02) |
 | AUTH-03 | Phase 1 | Complete (01-01) |
 | AUTH-04 | Phase 1 | Complete (01-01) |
-| AUTH-05 | Phase 1 | Pending |
-| UX-03 | Phase 1 | Pending |
-| UX-04 | Phase 1 | Pending |
+| AUTH-05 | Phase 1 | Complete (01-02) |
+| UX-03 | Phase 1 | Complete (01-02) |
+| UX-04 | Phase 1 | Complete (01-02) |
 | PROJ-01 | Phase 2 | Pending |
 | PROJ-02 | Phase 2 | Pending |
 | PROJ-03 | Phase 2 | Pending |
@@ -204,4 +204,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-03*
-*Last updated: 2026-03-03 after roadmap creation — traceability finalized, coverage corrected to 57*
+*Last updated: 2026-03-04 after 01-02 completion — AUTH-02, AUTH-03, AUTH-05, UX-03, UX-04 marked complete*

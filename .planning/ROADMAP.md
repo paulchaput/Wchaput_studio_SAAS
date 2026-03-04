@@ -35,7 +35,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Supabase schema, migrations, RLS policies, profiles table with role trigger and get_user_role() helper
-- [ ] 01-02-PLAN.md — Next.js 15 app scaffold, Supabase client factories (getAll/setAll), middleware, route groups, Tailwind v4 + Shadcn Zinc theme, TypeScript types
+- [x] 01-02-PLAN.md — Next.js 15 app scaffold, Supabase client factories (getAll/setAll), middleware, route groups, Tailwind v4 + Shadcn Zinc theme, TypeScript types
 - [ ] 01-03-PLAN.md — Login form + Server Action, role-based redirect, logout, AppSidebar + SidebarNav components, admin/accountant layout wiring
 
 ### Phase 2: Proyectos y Partidas
@@ -127,7 +127,7 @@ Note: Phases 3 and 4 both depend on Phase 2 and are independent of each other. P
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fundacion | 1/3 | In progress | - |
+| 1. Fundacion | 2/3 | In progress | - |
 | 2. Proyectos y Partidas | 0/3 | Not started | - |
 | 3. Pagos y Proveedores | 0/3 | Not started | - |
 | 4. Checklist de Produccion | 0/2 | Not started | - |

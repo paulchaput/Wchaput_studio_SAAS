@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 ## Current Position
 
 Phase: 1 of 6 (Fundacion)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-03-04 — Completed 01-01 (Initial Schema Migration)
+Last activity: 2026-03-04 — Completed 01-02 (Next.js App Scaffold)
 
-Progress: [#░░░░░░░░░] 5%
+Progress: [##░░░░░░░░] 10%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 2 min
-- Total execution time: 2 min
+- Total plans completed: 2
+- Average duration: 5 min
+- Total execution time: 10 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-fundacion | 1/3 | 2 min | 2 min |
+| 01-fundacion | 2/3 | 10 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2 min)
+- Last 5 plans: 01-01 (2 min), 01-02 (8 min)
 - Trend: -
 
 *Updated after each plan completion*
@@ -50,6 +50,9 @@ Recent decisions affecting current work:
 - [01-01]: get_user_role() marked STABLE — Postgres caches result per statement, prevents N+1 profile lookups per RLS row evaluation
 - [01-01]: Zero accountant policies on line_items — RLS default-deny enforces AUTH-04 at DB level without application logic
 - [01-01]: Suppliers Innovika and El Roble seeded in migration — immediately available without separate seed run
+- [01-02]: Used CookieOptions type import from @supabase/ssr to satisfy TypeScript strict mode in getAll/setAll handlers
+- [01-02]: Scaffolded Next.js manually (create-next-app blocked by existing .planning/.claude dirs)
+- [01-02]: tw-animate-css used instead of deprecated tailwindcss-animate
 
 ### Pending Todos
 
@@ -57,11 +60,10 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 1]: @supabase/ssr cookie handler API (getAll/setAll signature) changed in 2024 — verify against current Supabase docs before writing middleware.ts and lib/supabase/server.ts
 - [Phase 5]: @react-pdf/renderer v3.x renderToBuffer vs renderToStream API — verify at implementation time
 
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Completed 01-01-PLAN.md — Initial Schema Migration
+Stopped at: Completed 01-02-PLAN.md — Next.js App Scaffold
 Resume file: None
