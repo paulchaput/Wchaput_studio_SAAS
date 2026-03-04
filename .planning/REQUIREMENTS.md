@@ -136,6 +136,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-03 | Phase 1 | Pending |
 | AUTH-04 | Phase 1 | Pending |
 | AUTH-05 | Phase 1 | Pending |
+| UX-03 | Phase 1 | Pending |
+| UX-04 | Phase 1 | Pending |
 | PROJ-01 | Phase 2 | Pending |
 | PROJ-02 | Phase 2 | Pending |
 | PROJ-03 | Phase 2 | Pending |
@@ -152,6 +154,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PART-07 | Phase 2 | Pending |
 | PART-08 | Phase 2 | Pending |
 | PART-09 | Phase 2 | Pending |
+| UX-01 | Phase 2 | Pending |
+| UX-02 | Phase 2 | Pending |
+| UX-05 | Phase 2 | Pending |
 | PAY-01 | Phase 3 | Pending |
 | PAY-02 | Phase 3 | Pending |
 | PAY-03 | Phase 3 | Pending |
@@ -183,17 +188,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONT-02 | Phase 6 | Pending |
 | CONT-03 | Phase 6 | Pending |
 | CONT-04 | Phase 6 | Pending |
-| UX-01 | Phase 2 | Pending |
-| UX-02 | Phase 2 | Pending |
-| UX-03 | Phase 1 | Pending |
-| UX-04 | Phase 1 | Pending |
-| UX-05 | Phase 2 | Pending |
 
 **Coverage:**
-- v1 requirements: 54 total
-- Mapped to phases: 54
+- v1 requirements: 57 total
+- Mapped to phases: 57
 - Unmapped: 0 ✓
+
+**Phase distribution:**
+- Phase 1 (Fundacion): AUTH-01–05, UX-03, UX-04 = 7 requirements
+- Phase 2 (Proyectos y Partidas): PROJ-01–07, PART-01–09, UX-01, UX-02, UX-05 = 19 requirements
+- Phase 3 (Pagos y Proveedores): PAY-01–05, PROV-01–04 = 9 requirements
+- Phase 4 (Checklist de Produccion): CHEC-01–05 = 5 requirements
+- Phase 5 (Generacion de PDFs): QUOT-01–05, OC-01–03 = 8 requirements
+- Phase 6 (Dashboard y Vista Contador): DASH-01–05, CONT-01–04 = 9 requirements
 
 ---
 *Requirements defined: 2026-03-03*
-*Last updated: 2026-03-03 after initial definition*
+*Last updated: 2026-03-03 after roadmap creation — traceability finalized, coverage corrected to 57*
