@@ -1,0 +1,31 @@
+-- supabase/seed.sql
+-- W Chaput Studio — Initial User Setup
+--
+-- INSTRUCTIONS: Run these steps AFTER running the migration.
+--
+-- Step 1: Create admin user via Supabase Auth dashboard
+--   Dashboard → Authentication → Users → Add User
+--   Email: admin@wchaput.com (or your preferred email)
+--   Password: (choose a strong password)
+--   User Metadata: { "role": "admin", "full_name": "Paul Chaput" }
+--
+-- Step 2: Create accountant user via Supabase Auth dashboard
+--   Dashboard → Authentication → Users → Add User
+--   Email: contador@wchaput.com (or your preferred email)
+--   Password: (choose a strong password)
+--   User Metadata: { "role": "accountant", "full_name": "Contador" }
+--
+-- The handle_new_user trigger will automatically create the profiles rows
+-- with the correct role from the metadata provided above.
+--
+-- Step 3: Verify profiles table in Supabase Table Editor
+--   Dashboard → Table Editor → profiles
+--   Should show 2 rows: one with role='admin', one with role='accountant'
+--
+-- Step 4: Copy your Supabase project URL and anon key to .env.local:
+--   NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+--   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+--   (NEVER add SUPABASE_SERVICE_ROLE_KEY to any NEXT_PUBLIC_ variable)
+--
+-- Innovika and El Roble suppliers are seeded in the migration file.
+-- No additional seed data is required for Phase 1.
