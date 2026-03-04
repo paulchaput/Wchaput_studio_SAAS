@@ -1,3 +1,19 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: executing
+stopped_at: "Checkpoint: Verify complete Phase 1 auth flow manually (01-03 Task 3)"
+last_updated: "2026-03-04T13:59:13.853Z"
+last_activity: 2026-03-04 — Completed 01-02 (Next.js App Scaffold)
+progress:
+  total_phases: 6
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 10
+---
+
 # Project State
 
 ## Project Reference
@@ -53,6 +69,9 @@ Recent decisions affecting current work:
 - [01-02]: Used CookieOptions type import from @supabase/ssr to satisfy TypeScript strict mode in getAll/setAll handlers
 - [01-02]: Scaffolded Next.js manually (create-next-app blocked by existing .planning/.claude dirs)
 - [01-02]: tw-animate-css used instead of deprecated tailwindcss-animate
+- [Phase 01-fundacion]: loginAction returns { error: string } on failure, calls redirect() on success — TypeScript satisfied, redirect throws internally
+- [Phase 01-fundacion]: AppSidebar is Server Component; SidebarNav extracted as Client Component solely for usePathname active state
+- [Phase 01-fundacion]: Logout via HTML form action={logoutAction} — works without JavaScript, no onClick handler needed
 
 ### Pending Todos
 
@@ -64,6 +83,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04
-Stopped at: Completed 01-02-PLAN.md — Next.js App Scaffold
+Last session: 2026-03-04T13:59:07.969Z
+Stopped at: Checkpoint: Verify complete Phase 1 auth flow manually (01-03 Task 3)
 Resume file: None
