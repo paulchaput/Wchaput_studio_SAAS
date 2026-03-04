@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { AppSidebar } from '@/components/layout/AppSidebar'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -11,7 +12,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, full_name')
     .eq('id', user.id)
     .single()
 
@@ -21,14 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex h-screen bg-background">
-      <aside className="w-64 flex-shrink-0 bg-[--sidebar-background] text-[--sidebar-foreground] flex flex-col">
-        <div className="p-6 border-b border-[--sidebar-border]">
-          <p className="text-xs font-semibold tracking-widest uppercase opacity-60">W Chaput Studio</p>
-        </div>
-        <nav className="flex-1 p-4">
-          <p className="text-xs opacity-40">Navegación — Plan 01-03</p>
-        </nav>
-      </aside>
+      <AppSidebar role="admin" userName={profile?.full_name} />
       <main className="flex-1 overflow-auto p-6 bg-white">
         {children}
       </main>
