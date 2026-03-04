@@ -31,12 +31,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Unauthenticated users attempting to access any protected route are redirected to the login page
   4. The app renders with a dark sidebar navigation and white content area, using a monochrome palette, on both desktop and mobile
   5. The Supabase schema uses NUMERIC(12,2) columns for all money — no FLOAT or DECIMAL — and RLS policies are active on every table
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: Supabase project setup — schema, migrations, RLS policies, profiles table with role trigger
-- [ ] 01-02: Next.js app scaffolding — route groups (auth), (admin), (accountant); Supabase client factories; middleware with getUser()
-- [ ] 01-03: Login/logout flow — form, session handling, role-based redirect; app shell layouts with dark sidebar
+- [ ] 01-01-PLAN.md — Supabase schema, migrations, RLS policies, profiles table with role trigger and get_user_role() helper
+- [ ] 01-02-PLAN.md — Next.js 15 app scaffold, Supabase client factories (getAll/setAll), middleware, route groups, Tailwind v4 + Shadcn Zinc theme, TypeScript types
+- [ ] 01-03-PLAN.md — Login form + Server Action, role-based redirect, logout, AppSidebar + SidebarNav components, admin/accountant layout wiring
 
 ### Phase 2: Proyectos y Partidas
 **Goal**: Partners can create projects, track them through the 6-stage pipeline, and build line-item quotes with auto-calculated margins, IVA, and totals — all displayed in Spanish with MXN formatting
