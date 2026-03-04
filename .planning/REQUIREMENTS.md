@@ -15,12 +15,12 @@
 
 ### Projects (PROJ)
 
-- [ ] **PROJ-01**: User can create a project with: name, client, quote number, date, salesperson, estimated delivery date, internal notes
-- [ ] **PROJ-02**: Each project has a status that follows the pipeline: Prospecto → Cotizado → Anticipo Recibido → En Producción → Entregado → Cerrado
-- [ ] **PROJ-03**: User can manually advance or revert a project's status
-- [ ] **PROJ-04**: User can view a list of all projects with their status, client, quote number, and financial summary (total sale value, collected, owed)
-- [ ] **PROJ-05**: User can view a project detail page showing all sections: line items, payments, checklist, and documents
-- [ ] **PROJ-06**: User can edit any project field at any time
+- [x] **PROJ-01**: User can create a project with: name, client, quote number, date, salesperson, estimated delivery date, internal notes
+- [x] **PROJ-02**: Each project has a status that follows the pipeline: Prospecto → Cotizado → Anticipo Recibido → En Producción → Entregado → Cerrado
+- [x] **PROJ-03**: User can manually advance or revert a project's status
+- [x] **PROJ-04**: User can view a list of all projects with their status, client, quote number, and financial summary (total sale value, collected, owed)
+- [x] **PROJ-05**: User can view a project detail page showing all sections: line items, payments, checklist, and documents
+- [x] **PROJ-06**: User can edit any project field at any time
 - [x] **PROJ-07**: Dates are displayed in DD/MMM/YYYY format throughout
 
 ### Partidas / Line Items (PART)
@@ -89,8 +89,8 @@
 
 ### UX & Platform (UX)
 
-- [ ] **UX-01**: All UI labels, field names, status values, and navigation are in Spanish
-- [ ] **UX-02**: App is fully responsive and usable on mobile (minimum 375px width)
+- [x] **UX-01**: All UI labels, field names, status values, and navigation are in Spanish
+- [x] **UX-02**: App is fully responsive and usable on mobile (minimum 375px width)
 - [x] **UX-03**: Layout uses a dark sidebar for navigation and white content areas
 - [x] **UX-04**: Palette is monochrome with subtle grays; no color accent beyond black/white/gray
 - [x] **UX-05**: Every financial calculation is formula-driven — no hardcoded values anywhere in the codebase
@@ -138,12 +138,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-05 | Phase 1 | Complete (01-02) |
 | UX-03 | Phase 1 | Complete (01-02) |
 | UX-04 | Phase 1 | Complete (01-02) |
-| PROJ-01 | Phase 2 | Pending |
-| PROJ-02 | Phase 2 | Pending |
-| PROJ-03 | Phase 2 | Pending |
-| PROJ-04 | Phase 2 | Pending |
-| PROJ-05 | Phase 2 | Pending |
-| PROJ-06 | Phase 2 | Pending |
+| PROJ-01 | Phase 2 | Complete |
+| PROJ-02 | Phase 2 | Complete |
+| PROJ-03 | Phase 2 | Complete |
+| PROJ-04 | Phase 2 | Complete |
+| PROJ-05 | Phase 2 | Complete |
+| PROJ-06 | Phase 2 | Complete |
 | PROJ-07 | Phase 2 | Complete |
 | PART-01 | Phase 2 | Pending |
 | PART-02 | Phase 2 | Complete |
@@ -154,8 +154,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PART-07 | Phase 2 | Complete |
 | PART-08 | Phase 2 | Pending |
 | PART-09 | Phase 2 | Complete |
-| UX-01 | Phase 2 | Pending |
-| UX-02 | Phase 2 | Pending |
+| UX-01 | Phase 2 | Complete |
+| UX-02 | Phase 2 | Complete |
 | UX-05 | Phase 2 | Complete |
 | PAY-01 | Phase 3 | Pending |
 | PAY-02 | Phase 3 | Pending |

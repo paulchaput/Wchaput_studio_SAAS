@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-proyectos-y-partidas-01-PLAN.md — Financial calculations and formatters
-last_updated: "2026-03-04T16:39:06.101Z"
+stopped_at: Completed 02-proyectos-y-partidas-02-PLAN.md — Project CRUD with 6-stage pipeline
+last_updated: "2026-03-04T23:48:48.492Z"
 last_activity: 2026-03-04 — Completed 01-03 (Auth Flow and Dark Sidebar)
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 6
-  completed_plans: 1
+  completed_plans: 2
   percent: 33
 ---
 
@@ -51,6 +51,7 @@ Progress: [███░░░░░░░] 33%
 
 *Updated after each plan completion*
 | Phase 02-proyectos-y-partidas P01 | 8 | 4 tasks | 7 files |
+| Phase 02-proyectos-y-partidas P02 | 6 min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,9 @@ Recent decisions affecting current work:
 - [Phase 02-01]: Gross margin formula (costo / (1 - margen)) proven by test: calcPrecioVenta(100, 0.50) === 200, not 150
 - [Phase 02-01]: IVA_RATE=0.16 exported as named constant from calculations.ts — zero inline occurrences allowed in components or app
 - [Phase 02-01]: formatFecha uses Date.UTC to prevent timezone off-by-one for Mexico City (UTC-6) servers
+- [Phase 02-proyectos-y-partidas]: Server Action return type wrapped in void-compatible wrapper for form action prop TypeScript compatibility
+- [Phase 02-proyectos-y-partidas]: EditarProyectoPage uses params as Promise<{ id: string }> for Next.js 15 async params API
+- [Phase 02-proyectos-y-partidas]: getProjects computes subtotal/gran_total in TypeScript using calcSubtotal/calcTotal — not SQL
 
 ### Pending Todos
 
@@ -87,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T16:39:06.099Z
-Stopped at: Completed 02-proyectos-y-partidas-01-PLAN.md — Financial calculations and formatters
+Last session: 2026-03-04T23:48:48.491Z
+Stopped at: Completed 02-proyectos-y-partidas-02-PLAN.md — Project CRUD with 6-stage pipeline
 Resume file: None
