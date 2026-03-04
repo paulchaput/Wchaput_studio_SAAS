@@ -9,8 +9,8 @@
 
 - [ ] **AUTH-01**: User can log in with email and password (Supabase Auth)
 - [ ] **AUTH-02**: User session persists across browser refresh and page navigation
-- [ ] **AUTH-03**: Admin role has full access to all features, data, and financial details
-- [ ] **AUTH-04**: Accountant role has read-only access to cash flow and payment history — margins, supplier costs, and profit splits are never visible (enforced at DB level via RLS, not just UI)
+- [x] **AUTH-03**: Admin role has full access to all features, data, and financial details
+- [x] **AUTH-04**: Accountant role has read-only access to cash flow and payment history — margins, supplier costs, and profit splits are never visible (enforced at DB level via RLS, not just UI)
 - [ ] **AUTH-05**: Unauthenticated users are redirected to login; role-based redirect sends admin to dashboard, accountant to their summary view
 
 ### Projects (PROJ)
@@ -133,8 +133,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | AUTH-01 | Phase 1 | Pending |
 | AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
+| AUTH-03 | Phase 1 | Complete (01-01) |
+| AUTH-04 | Phase 1 | Complete (01-01) |
 | AUTH-05 | Phase 1 | Pending |
 | UX-03 | Phase 1 | Pending |
 | UX-04 | Phase 1 | Pending |
