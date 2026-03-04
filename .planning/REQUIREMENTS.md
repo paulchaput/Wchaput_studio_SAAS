@@ -21,19 +21,19 @@
 - [ ] **PROJ-04**: User can view a list of all projects with their status, client, quote number, and financial summary (total sale value, collected, owed)
 - [ ] **PROJ-05**: User can view a project detail page showing all sections: line items, payments, checklist, and documents
 - [ ] **PROJ-06**: User can edit any project field at any time
-- [ ] **PROJ-07**: Dates are displayed in DD/MMM/YYYY format throughout
+- [x] **PROJ-07**: Dates are displayed in DD/MMM/YYYY format throughout
 
 ### Partidas / Line Items (PART)
 
 - [ ] **PART-01**: User can add a line item to a project with: description, reference, dimensions, quantity, supplier (from supplier directory), unit cost (costo proveedor)
-- [ ] **PART-02**: Each line item has a margin % that defaults to 50% and is editable per line
-- [ ] **PART-03**: Sale price per unit is auto-calculated from cost and margin: `precio_venta = costo / (1 - margen)`
-- [ ] **PART-04**: Line item total (sale) is auto-calculated: `total_venta = precio_venta × cantidad`
-- [ ] **PART-05**: Line item total (cost) is auto-calculated: `total_costo = costo × cantidad`
-- [ ] **PART-06**: Project totals auto-calculate from line items: subtotal (sum of sale totals), IVA (16%), grand total
-- [ ] **PART-07**: Project cost and profit auto-calculate: total cost (sum of cost totals), gross profit (subtotal − total cost)
+- [x] **PART-02**: Each line item has a margin % that defaults to 50% and is editable per line
+- [x] **PART-03**: Sale price per unit is auto-calculated from cost and margin: `precio_venta = costo / (1 - margen)`
+- [x] **PART-04**: Line item total (sale) is auto-calculated: `total_venta = precio_venta × cantidad`
+- [x] **PART-05**: Line item total (cost) is auto-calculated: `total_costo = costo × cantidad`
+- [x] **PART-06**: Project totals auto-calculate from line items: subtotal (sum of sale totals), IVA (16%), grand total
+- [x] **PART-07**: Project cost and profit auto-calculate: total cost (sum of cost totals), gross profit (subtotal − total cost)
 - [ ] **PART-08**: User can edit or delete any line item; all totals recalculate immediately
-- [ ] **PART-09**: All currency displayed as $#,##0.00 MXN throughout
+- [x] **PART-09**: All currency displayed as $#,##0.00 MXN throughout
 
 ### Cotización PDF (QUOT)
 
@@ -93,7 +93,7 @@
 - [ ] **UX-02**: App is fully responsive and usable on mobile (minimum 375px width)
 - [x] **UX-03**: Layout uses a dark sidebar for navigation and white content areas
 - [x] **UX-04**: Palette is monochrome with subtle grays; no color accent beyond black/white/gray
-- [ ] **UX-05**: Every financial calculation is formula-driven — no hardcoded values anywhere in the codebase
+- [x] **UX-05**: Every financial calculation is formula-driven — no hardcoded values anywhere in the codebase
 
 ## v2 Requirements
 
@@ -144,19 +144,19 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROJ-04 | Phase 2 | Pending |
 | PROJ-05 | Phase 2 | Pending |
 | PROJ-06 | Phase 2 | Pending |
-| PROJ-07 | Phase 2 | Pending |
+| PROJ-07 | Phase 2 | Complete |
 | PART-01 | Phase 2 | Pending |
-| PART-02 | Phase 2 | Pending |
-| PART-03 | Phase 2 | Pending |
-| PART-04 | Phase 2 | Pending |
-| PART-05 | Phase 2 | Pending |
-| PART-06 | Phase 2 | Pending |
-| PART-07 | Phase 2 | Pending |
+| PART-02 | Phase 2 | Complete |
+| PART-03 | Phase 2 | Complete |
+| PART-04 | Phase 2 | Complete |
+| PART-05 | Phase 2 | Complete |
+| PART-06 | Phase 2 | Complete |
+| PART-07 | Phase 2 | Complete |
 | PART-08 | Phase 2 | Pending |
-| PART-09 | Phase 2 | Pending |
+| PART-09 | Phase 2 | Complete |
 | UX-01 | Phase 2 | Pending |
 | UX-02 | Phase 2 | Pending |
-| UX-05 | Phase 2 | Pending |
+| UX-05 | Phase 2 | Complete |
 | PAY-01 | Phase 3 | Pending |
 | PAY-02 | Phase 3 | Pending |
 | PAY-03 | Phase 3 | Pending |

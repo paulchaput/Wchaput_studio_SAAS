@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 01-fundacion-03-PLAN.md — Phase 1 complete
-last_updated: "2026-03-04T16:05:41.191Z"
+stopped_at: Completed 02-proyectos-y-partidas-01-PLAN.md — Financial calculations and formatters
+last_updated: "2026-03-04T16:39:06.101Z"
 last_activity: 2026-03-04 — Completed 01-03 (Auth Flow and Dark Sidebar)
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 3
+  total_plans: 6
   completed_plans: 1
   percent: 33
 ---
@@ -50,6 +50,7 @@ Progress: [███░░░░░░░] 33%
 - Trend: stable
 
 *Updated after each plan completion*
+| Phase 02-proyectos-y-partidas P01 | 8 | 4 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Recent decisions affecting current work:
 - [Phase 01-fundacion]: loginAction returns { error: string } on failure, calls redirect() on success — TypeScript satisfied, redirect throws internally
 - [Phase 01-fundacion]: AppSidebar is Server Component; SidebarNav extracted as Client Component solely for usePathname active state
 - [Phase 01-fundacion]: Logout via HTML form action={logoutAction} — works without JavaScript, no onClick handler needed
+- [Phase 02-01]: Gross margin formula (costo / (1 - margen)) proven by test: calcPrecioVenta(100, 0.50) === 200, not 150
+- [Phase 02-01]: IVA_RATE=0.16 exported as named constant from calculations.ts — zero inline occurrences allowed in components or app
+- [Phase 02-01]: formatFecha uses Date.UTC to prevent timezone off-by-one for Mexico City (UTC-6) servers
 
 ### Pending Todos
 
@@ -83,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T14:00:30.225Z
-Stopped at: Completed 01-fundacion-03-PLAN.md — Phase 1 complete
+Last session: 2026-03-04T16:39:06.099Z
+Stopped at: Completed 02-proyectos-y-partidas-01-PLAN.md — Financial calculations and formatters
 Resume file: None
