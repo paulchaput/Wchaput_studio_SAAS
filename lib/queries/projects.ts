@@ -29,3 +29,22 @@ export async function getProjectById(id: string) {
   if (error) throw error
   return data
 }
+
+export async function getProjectWithLineItems(id: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('projects')
+    .select(`
+      *,
+      line_items (
+        id, descripcion, referencia, dimensiones,
+        cantidad, costo_proveedor, margen, proveedor_id, created_at,
+        suppliers ( id, nombre )
+      )
+    `)
+    .eq('id', id)
+    .single()
+
+  if (error) throw error
+  return data
+}
