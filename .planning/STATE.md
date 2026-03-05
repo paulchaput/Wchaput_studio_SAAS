@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-proyectos-y-partidas-02-PLAN.md — Project CRUD with 6-stage pipeline
-last_updated: "2026-03-04T23:48:48.492Z"
+stopped_at: "Checkpoint: human-verify for 02-03 (project detail page + line items)"
+last_updated: "2026-03-05T01:44:01.113Z"
 last_activity: 2026-03-04 — Completed 01-03 (Auth Flow and Dark Sidebar)
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 6
-  completed_plans: 2
+  completed_plans: 3
   percent: 33
 ---
 
@@ -52,6 +52,7 @@ Progress: [███░░░░░░░] 33%
 *Updated after each plan completion*
 | Phase 02-proyectos-y-partidas P01 | 8 | 4 tasks | 7 files |
 | Phase 02-proyectos-y-partidas P02 | 6 min | 2 tasks | 13 files |
+| Phase 02-proyectos-y-partidas P03 | 27 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,9 @@ Recent decisions affecting current work:
 - [Phase 02-proyectos-y-partidas]: Server Action return type wrapped in void-compatible wrapper for form action prop TypeScript compatibility
 - [Phase 02-proyectos-y-partidas]: EditarProyectoPage uses params as Promise<{ id: string }> for Next.js 15 async params API
 - [Phase 02-proyectos-y-partidas]: getProjects computes subtotal/gran_total in TypeScript using calcSubtotal/calcTotal — not SQL
+- [Phase 02-03]: deleteLineItemAction accepts FormData (hidden inputs pattern) — satisfies form action void | Promise<void> TypeScript constraint without .bind()
+- [Phase 02-03]: Zod margen transform (v => v / 100) is the single source of truth for percent-to-decimal conversion — components display integers, DB stores decimals
+- [Phase 02-03]: Shadcn Dialog and Separator created manually from radix-ui (already installed) — avoids CLI dependency on shadcn@latest add
 
 ### Pending Todos
 
@@ -91,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T23:48:48.491Z
-Stopped at: Completed 02-proyectos-y-partidas-02-PLAN.md — Project CRUD with 6-stage pipeline
+Last session: 2026-03-05T01:44:01.111Z
+Stopped at: Checkpoint: human-verify for 02-03 (project detail page + line items)
 Resume file: None
