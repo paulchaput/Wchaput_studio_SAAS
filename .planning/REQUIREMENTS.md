@@ -25,14 +25,14 @@
 
 ### Partidas / Line Items (PART)
 
-- [ ] **PART-01**: User can add a line item to a project with: description, reference, dimensions, quantity, supplier (from supplier directory), unit cost (costo proveedor)
+- [x] **PART-01**: User can add a line item to a project with: description, reference, dimensions, quantity, supplier (from supplier directory), unit cost (costo proveedor)
 - [x] **PART-02**: Each line item has a margin % that defaults to 50% and is editable per line
 - [x] **PART-03**: Sale price per unit is auto-calculated from cost and margin: `precio_venta = costo / (1 - margen)`
 - [x] **PART-04**: Line item total (sale) is auto-calculated: `total_venta = precio_venta × cantidad`
 - [x] **PART-05**: Line item total (cost) is auto-calculated: `total_costo = costo × cantidad`
 - [x] **PART-06**: Project totals auto-calculate from line items: subtotal (sum of sale totals), IVA (16%), grand total
 - [x] **PART-07**: Project cost and profit auto-calculate: total cost (sum of cost totals), gross profit (subtotal − total cost)
-- [ ] **PART-08**: User can edit or delete any line item; all totals recalculate immediately
+- [x] **PART-08**: User can edit or delete any line item; all totals recalculate immediately
 - [x] **PART-09**: All currency displayed as $#,##0.00 MXN throughout
 
 ### Cotización PDF (QUOT)
@@ -145,14 +145,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROJ-05 | Phase 2 | Complete |
 | PROJ-06 | Phase 2 | Complete |
 | PROJ-07 | Phase 2 | Complete |
-| PART-01 | Phase 2 | Pending |
+| PART-01 | Phase 2 | Complete |
 | PART-02 | Phase 2 | Complete |
 | PART-03 | Phase 2 | Complete |
 | PART-04 | Phase 2 | Complete |
 | PART-05 | Phase 2 | Complete |
 | PART-06 | Phase 2 | Complete |
 | PART-07 | Phase 2 | Complete |
-| PART-08 | Phase 2 | Pending |
+| PART-08 | Phase 2 | Complete |
 | PART-09 | Phase 2 | Complete |
 | UX-01 | Phase 2 | Complete |
 | UX-02 | Phase 2 | Complete |

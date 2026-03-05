@@ -93,7 +93,7 @@ Each task was committed atomically:
 1. **Task 1: Line item Server Actions and getProjectWithLineItems query** - `33bb71b` (feat)
 2. **Task 2: LineItemForm, LineItemTable, ProjectFinancialSummary, project detail page** - `094e6a9` (feat)
 
-**Plan metadata:** (pending after checkpoint)
+**Plan metadata:** `b20ecab` (docs: complete line items and financial summary plan)
 
 ## Files Created/Modified
 - `lib/actions/line-items.ts` — Three Server Actions (create/update/delete) with Zod validation; margen transform is the only percent→decimal conversion point
@@ -146,7 +146,13 @@ None - no external service configuration required.
 - Project detail page complete with line items and financial summary
 - Phase 3 (Pagos) placeholder comment in page.tsx at correct insertion point
 - All financial calculation functions proven by 22 vitest tests
-- Awaiting human verification checkpoint (step 3 of plan 02-03) before Phase 3 begins
+- Human verification checkpoint approved — Phase 3 (Pagos y Proveedores) can begin
+
+## Self-Check: PASSED
+
+All key files present: lib/actions/line-items.ts, components/projects/LineItemForm.tsx, components/projects/LineItemTable.tsx, components/projects/ProjectFinancialSummary.tsx, app/(admin)/proyectos/[id]/page.tsx, SUMMARY.md
+
+All commits verified: 33bb71b (Task 1), 094e6a9 (Task 2), b20ecab (Plan metadata)
 
 ---
 *Phase: 02-proyectos-y-partidas*
