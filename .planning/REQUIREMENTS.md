@@ -77,8 +77,8 @@
 - [x] **DASH-01**: Admin dashboard shows KPI cards: number of active projects, total pipeline value (sum of grand totals for non-Cerrado projects), total pending client payments, total pending supplier payments
 - [x] **DASH-02**: Dashboard shows a project status pipeline summary (count per status stage)
 - [x] **DASH-03**: Dashboard shows a supplier debt breakdown: amount owed to Innovika, El Roble, and Others across all active projects
-- [ ] **DASH-04**: Dashboard shows a monthly revenue vs. cost vs. profit bar chart (Recharts)
-- [ ] **DASH-05**: Dashboard shows a 30-day cash flow projection: confirmed incoming client payments vs. scheduled supplier payments
+- [x] **DASH-04**: Dashboard shows a monthly revenue vs. cost vs. profit bar chart (Recharts)
+- [x] **DASH-05**: Dashboard shows a 30-day cash flow projection: confirmed incoming client payments vs. scheduled supplier payments
 
 ### Vista Contador (CONT)
 
@@ -182,8 +182,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-01 | Phase 6 | Complete (06-01) |
 | DASH-02 | Phase 6 | Complete (06-01) |
 | DASH-03 | Phase 6 | Complete (06-01) |
-| DASH-04 | Phase 6 | Pending |
-| DASH-05 | Phase 6 | Pending |
+| DASH-04 | Phase 6 | Complete |
+| DASH-05 | Phase 6 | Complete |
 | CONT-01 | Phase 6 | Complete (06-03) |
 | CONT-02 | Phase 6 | Complete (06-03) |
 | CONT-03 | Phase 6 | Complete (06-03) |

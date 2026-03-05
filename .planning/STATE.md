@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: complete
-stopped_at: Completed 06-03-PLAN.md — Phase 6 Plan 3 complete — ALL PHASES DONE
-last_updated: "2026-03-05T08:00:00Z"
+status: completed
+stopped_at: Completed 06-02-PLAN.md — Recharts charts added to admin dashboard
+last_updated: "2026-03-05T14:02:07.189Z"
 last_activity: 2026-03-05 — Completed 06-03 (Accountant Financial Views)
 progress:
   total_phases: 6
-  completed_phases: 6
-  total_plans: 13
+  completed_phases: 4
+  total_plans: 16
   completed_plans: 13
   percent: 100
 ---
@@ -63,6 +63,7 @@ Progress: [██████████] 100%
 | Phase 05-generacion-de-pdfs P02 | 3 | 2 tasks | 5 files |
 | Phase 06-dashboard-y-vista-contador P01 | 3 min | 2 tasks | 8 files |
 | Phase 06-dashboard-y-vista-contador P03 | 8 min | 3 tasks | 7 files |
+| Phase 06-dashboard-y-vista-contador P02 | 4 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,9 @@ Recent decisions affecting current work:
 - [Phase 06-03]: aggregateAccountantProjects reads gran_total via Number() coercion — matches Supabase NUMERIC string JSON response
 - [Phase 06-03]: aggregateSupplierTotals only includes suppliers with at least one payment (cash-basis view per CONT-02)
 - [Phase 06-03]: Neither accountant page imports Server Actions nor renders mutation controls — CONT-04 enforced at UI layer
+- [Phase 06-02]: Recharts Tooltip formatter typed as (v: number | undefined) => string — Recharts Formatter generic allows undefined value
+- [Phase 06-02]: UTC-based date arithmetic in aggregateCashFlow — getUTCDate() prevents timezone off-by-one for Mexico City environment
+- [Phase 06-02]: next/dynamic({ ssr: false }) for Recharts components — prevents SSR hydration mismatch; data fetched server-side, passed as props
 
 ### Pending Todos
 
@@ -136,6 +140,6 @@ None — all phases complete.
 
 ## Session Continuity
 
-Last session: 2026-03-05T08:00:00Z
-Stopped at: Completed 06-03-PLAN.md — Phase 6 Plan 3 complete — ALL PHASES DONE
+Last session: 2026-03-05T14:02:07.187Z
+Stopped at: Completed 06-02-PLAN.md — Recharts charts added to admin dashboard
 Resume file: None
