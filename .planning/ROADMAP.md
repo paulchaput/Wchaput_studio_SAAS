@@ -80,11 +80,11 @@ Plans:
   2. Admin can update the status, assignee, and due date of any task; changes save immediately
   3. Checklist displays grouped by phase with a visual progress indicator per phase (e.g., 3/7 completed)
   4. The checklist section is not visible to accountant-role users
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: Checklist schema, seeding on project creation, and RLS (admin-only)
-- [ ] 04-02: ChecklistPanel client component — phase grouping, status toggle, assignee/due date editing, phase progress indicator
+- [ ] 04-01-PLAN.md — CHECKLIST_SEED constant, ChecklistTask types, getChecklistTasks query, updateChecklistTaskAction, createProjectAction seeding, backfill migration
+- [ ] 04-02-PLAN.md — ChecklistPanel client component with phase grouping and progress indicators, admin-only wiring in project detail page, human verification
 
 ### Phase 5: Generacion de PDFs
 **Goal**: Partners can download a client-facing quote PDF that never shows costs, and admin can generate a supplier purchase order PDF that shows supplier costs — both with W Chaput Studio branding
