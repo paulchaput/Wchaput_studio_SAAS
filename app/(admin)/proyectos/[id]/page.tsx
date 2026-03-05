@@ -4,8 +4,10 @@ import Link from 'next/link'
 import { getProjectWithLineItems } from '@/lib/queries/projects'
 import { getSuppliers } from '@/lib/queries/suppliers'
 import { getClientPayments, getSupplierPayments } from '@/lib/queries/payments'
+import { getChecklistTasks } from '@/lib/queries/checklist'
 import { calcSubtotal, calcTotal } from '@/lib/calculations'
 import { formatFecha } from '@/lib/formatters'
+import { createClient } from '@/lib/supabase/server'
 
 import { ProjectStatusPipeline } from '@/components/projects/ProjectStatusPipeline'
 import { LineItemTable } from '@/components/projects/LineItemTable'
@@ -13,6 +15,7 @@ import { LineItemForm } from '@/components/projects/LineItemForm'
 import { ProjectFinancialSummary } from '@/components/projects/ProjectFinancialSummary'
 import { ClientPaymentPanel } from '@/components/projects/ClientPaymentPanel'
 import { SupplierPaymentPanel } from '@/components/projects/SupplierPaymentPanel'
+import { ChecklistPanel } from '@/components/projects/ChecklistPanel'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 
@@ -23,11 +26,23 @@ interface PageProps {
 export default async function ProyectoDetailPage({ params }: PageProps) {
   const { id } = await params
 
-  const [project, suppliers, clientPayments, supplierPayments] = await Promise.all([
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user!.id)
+    .single()
+
+  const isAdmin = profile?.role === 'admin'
+
+  const [project, suppliers, clientPayments, supplierPayments, checklistTasks] = await Promise.all([
     getProjectWithLineItems(id).catch(() => null),
     getSuppliers(),
     getClientPayments(id),
     getSupplierPayments(id),
+    isAdmin ? getChecklistTasks(id) : Promise.resolve([]),
   ])
 
   if (!project) notFound()
@@ -131,6 +146,16 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
       )}
 
       {/* Checklist — Phase 4 */}
+      {isAdmin && (
+        <>
+          <Separator />
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Checklist de Producción</h2>
+            <ChecklistPanel tasks={checklistTasks} projectId={id} />
+          </div>
+        </>
+      )}
+
       {/* Documentos / PDF — Phase 5 */}
     </div>
   )
