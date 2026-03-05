@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 03-03-PLAN.md — Phase 3 Plan 3 complete
-last_updated: "2026-03-05T04:15:28.290Z"
+stopped_at: Completed 04-01-PLAN.md — Phase 4 Plan 1 complete
+last_updated: "2026-03-05T04:43:57.638Z"
 last_activity: 2026-03-04 — Completed 01-03 (Auth Flow and Dark Sidebar)
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 9
-  completed_plans: 6
+  total_plans: 11
+  completed_plans: 7
   percent: 33
 ---
 
@@ -57,6 +57,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 03-pagos-y-proveedores P01 | 15 | 3 tasks | 9 files |
 | Phase 03-pagos-y-proveedores P02 | 2 | 2 tasks | 4 files |
 | Phase 03-pagos-y-proveedores P03 | 5 | 3 tasks | 3 files |
+| Phase 04-checklist-de-produccion P01 | 3 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,10 @@ Recent decisions affecting current work:
 - [Phase 03-pagos-y-proveedores]: getClientPayments in Promise.all alongside existing queries — parallel fetch pattern maintained from 02-03
 - [Phase 03-pagos-y-proveedores]: Double revalidatePath on supplier payment mutation: /proyectos/[id] AND /proveedores/[supplierId] — updates both pages in one Server Action call
 - [Phase 03-pagos-y-proveedores]: supplier_id enforced as z.string().uuid() in Zod schema — prevents orphaned payments invisible on supplier detail page
+- [Phase 04-checklist-de-produccion]: CHECKLIST_SEED is static TypeScript array (not DB-driven) — zero query cost, single source of truth
+- [Phase 04-checklist-de-produccion]: calcPhaseProgress treats N/A as completed — tasks opted-out count toward progress
+- [Phase 04-checklist-de-produccion]: Checklist seed in createProjectAction is non-fatal — project creation succeeds even if checklist insert fails
+- [Phase 04-checklist-de-produccion]: createProjectAction redirects to /proyectos/[id] (not /proyectos) after seeding
 
 ### Pending Todos
 
@@ -110,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T04:11:34.658Z
-Stopped at: Completed 03-03-PLAN.md — Phase 3 Plan 3 complete
+Last session: 2026-03-05T04:43:57.637Z
+Stopped at: Completed 04-01-PLAN.md — Phase 4 Plan 1 complete
 Resume file: None

@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Fundacion** - Supabase schema, auth infrastructure, RLS, two-role login flow, and app shell layout
 - [ ] **Phase 2: Proyectos y Partidas** - Project registry with 6-stage pipeline, line items with auto-calculated margins and totals
 - [x] **Phase 3: Pagos y Proveedores** - Client payment tracking, supplier directory, and supplier payment management (completed 2026-03-05)
-- [ ] **Phase 4: Checklist de Produccion** - 28-task production checklist seeded at project creation across 4 operational phases
+- [ ] **Phase 4: Checklist de Produccion** - 30-task production checklist seeded at project creation across 4 operational phases
 - [ ] **Phase 5: Generacion de PDFs** - Client-facing quote PDF and admin-only purchase order PDF
 - [ ] **Phase 6: Dashboard y Vista Contador** - Admin KPI dashboard with charts and read-only accountant financial view
 
@@ -72,11 +72,11 @@ Plans:
 - [ ] 03-03-PLAN.md — Supplier payment registration per-project, double-revalidate balance update, human verification
 
 ### Phase 4: Checklist de Produccion
-**Goal**: Every project automatically has a 28-task production checklist across 4 operational phases that the admin can track to completion
+**Goal**: Every project automatically has a 30-task production checklist across 4 operational phases that the admin can track to completion
 **Depends on**: Phase 2
 **Requirements**: CHEC-01, CHEC-02, CHEC-03, CHEC-04, CHEC-05
 **Success Criteria** (what must be TRUE):
-  1. When a project is created, 28 tasks are automatically seeded across the 4 phases (Comercial 7, Diseno y Especificaciones 6, Produccion 9, Entrega y Cierre 8) — visible immediately on the project detail page
+  1. When a project is created, 30 tasks are automatically seeded across the 4 phases (Comercial 7, Diseno y Especificaciones 6, Produccion 9, Entrega y Cierre 8) — visible immediately on the project detail page
   2. Admin can update the status, assignee, and due date of any task; changes save immediately
   3. Checklist displays grouped by phase with a visual progress indicator per phase (e.g., 3/7 completed)
   4. The checklist section is not visible to accountant-role users
@@ -130,6 +130,6 @@ Note: Phases 3 and 4 both depend on Phase 2 and are independent of each other. P
 | 1. Fundacion | 1/3 | In Progress|  |
 | 2. Proyectos y Partidas | 2/3 | In Progress|  |
 | 3. Pagos y Proveedores | 3/3 | Complete   | 2026-03-05 |
-| 4. Checklist de Produccion | 0/2 | Not started | - |
+| 4. Checklist de Produccion | 1/2 | In Progress|  |
 | 5. Generacion de PDFs | 0/2 | Not started | - |
 | 6. Dashboard y Vista Contador | 0/3 | Not started | - |
