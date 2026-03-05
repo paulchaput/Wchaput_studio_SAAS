@@ -168,7 +168,30 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
           >
             Descargar Cotizacion PDF
           </a>
-          {/* Ordenes de Compra — added in 05-02-PLAN */}
+          {isAdmin && (() => {
+            // Collect unique suppliers that have line items on this project
+            const supplierMap = new Map<string, string>() // id -> nombre
+            lineItems.forEach((li: { suppliers?: { id: string; nombre: string } | null }) => {
+              if (li.suppliers?.id && li.suppliers?.nombre) {
+                supplierMap.set(li.suppliers.id, li.suppliers.nombre)
+              }
+            })
+            if (supplierMap.size === 0) return null
+            return (
+              <>
+                {Array.from(supplierMap.entries()).map(([supplierId, supplierNombre]) => (
+                  <a
+                    key={supplierId}
+                    href={`/proyectos/${id}/orden-compra?supplier_id=${supplierId}`}
+                    className="inline-flex items-center gap-2 text-sm font-medium border px-3 py-1.5 rounded hover:bg-muted transition-colors"
+                    download
+                  >
+                    OC — {supplierNombre}
+                  </a>
+                ))}
+              </>
+            )
+          })()}
         </div>
       </div>
     </div>
