@@ -45,11 +45,11 @@
 
 ### Seguimiento de Pagos (PAY)
 
-- [ ] **PAY-01**: User can register a client payment with: amount, date, type (anticipo or saldo), notes
-- [ ] **PAY-02**: Per-project client payment summary auto-calculates: total collected, anticipo expected (70% of grand total), saldo expected (30%), outstanding balance
+- [x] **PAY-01**: User can register a client payment with: amount, date, type (anticipo or saldo), notes
+- [x] **PAY-02**: Per-project client payment summary auto-calculates: total collected, anticipo expected (70% of grand total), saldo expected (30%), outstanding balance
 - [ ] **PAY-03**: User can register a supplier payment for a line item or for a supplier within a project, with: amount, date, notes
 - [ ] **PAY-04**: Per-project supplier summary auto-calculates: total owed to suppliers (sum of line item costs), total paid to suppliers, outstanding supplier balance
-- [ ] **PAY-05**: All payment amounts stored and displayed in MXN; no floating-point arithmetic (NUMERIC columns in DB)
+- [x] **PAY-05**: All payment amounts stored and displayed in MXN; no floating-point arithmetic (NUMERIC columns in DB)
 
 ### Proveedores / Suppliers (PROV)
 
@@ -157,11 +157,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UX-01 | Phase 2 | Complete |
 | UX-02 | Phase 2 | Complete |
 | UX-05 | Phase 2 | Complete |
-| PAY-01 | Phase 3 | Pending |
-| PAY-02 | Phase 3 | Pending |
+| PAY-01 | Phase 3 | Complete |
+| PAY-02 | Phase 3 | Complete |
 | PAY-03 | Phase 3 | Pending |
 | PAY-04 | Phase 3 | Pending |
-| PAY-05 | Phase 3 | Pending |
+| PAY-05 | Phase 3 | Complete |
 | PROV-01 | Phase 3 | Complete |
 | PROV-02 | Phase 3 | Complete |
 | PROV-03 | Phase 3 | Complete |

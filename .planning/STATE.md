@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 03-01-PLAN.md — Phase 3 Plan 1 complete
-last_updated: "2026-03-05T04:03:52.103Z"
+stopped_at: Completed 03-02-PLAN.md — Phase 3 Plan 2 complete
+last_updated: "2026-03-05T04:07:49.650Z"
 last_activity: 2026-03-04 — Completed 01-03 (Auth Flow and Dark Sidebar)
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 9
-  completed_plans: 4
+  completed_plans: 5
   percent: 33
 ---
 
@@ -55,6 +55,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 02-proyectos-y-partidas P03 | 27 | 2 tasks | 8 files |
 | Phase 02-proyectos-y-partidas P03 | 27 | 3 tasks | 9 files |
 | Phase 03-pagos-y-proveedores P01 | 15 | 3 tasks | 9 files |
+| Phase 03-pagos-y-proveedores P02 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,9 @@ Recent decisions affecting current work:
 - [Phase 03-pagos-y-proveedores]: ANTICIPO_RATE=0.70 and SALDO_RATE=0.30 exported as named constants from calculations.ts — zero inline occurrences allowed in components
 - [Phase 03-pagos-y-proveedores]: getSupplierWithDetails uses two batch queries (line_items + payments_supplier) — never N+1 per project (PROV-03)
 - [Phase 03-pagos-y-proveedores]: Number(p.monto) coercion at reduce entry point — Supabase returns NUMERIC(12,2) as strings in JSON
+- [Phase 03-pagos-y-proveedores]: Form action void wrapper: async (fd) => { await deleteClientPaymentAction(fd) } — satisfies TypeScript void constraint for form action prop, same pattern as LineItemTable
+- [Phase 03-pagos-y-proveedores]: granTotal computed server-side in page.tsx and passed as prop to ClientPaymentPanel — avoids client-side recalculation where lineItems data already lives
+- [Phase 03-pagos-y-proveedores]: getClientPayments in Promise.all alongside existing queries — parallel fetch pattern maintained from 02-03
 
 ### Pending Todos
 
@@ -103,6 +107,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T04:03:52.101Z
-Stopped at: Completed 03-01-PLAN.md — Phase 3 Plan 1 complete
+Last session: 2026-03-05T04:07:49.648Z
+Stopped at: Completed 03-02-PLAN.md — Phase 3 Plan 2 complete
 Resume file: None
