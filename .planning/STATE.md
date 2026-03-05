@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 05-02-PLAN.md — Phase 5 Plan 2 complete
-last_updated: "2026-03-05T05:42:47.697Z"
-last_activity: 2026-03-04 — Completed 01-03 (Auth Flow and Dark Sidebar)
+status: in_progress
+stopped_at: Completed 06-01-PLAN.md — Phase 6 Plan 1 complete
+last_updated: "2026-03-05T13:47:30Z"
+last_activity: 2026-03-05 — Completed 06-01 (Dashboard KPI Aggregation and Components)
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 5
   total_plans: 13
-  completed_plans: 10
-  percent: 33
+  completed_plans: 11
+  percent: 85
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 ## Current Position
 
-Phase: 1 of 6 (Fundacion) — COMPLETE
-Plan: 3 of 3 in current phase — COMPLETE
-Status: Phase 1 complete, ready for Phase 2
-Last activity: 2026-03-04 — Completed 01-03 (Auth Flow and Dark Sidebar)
+Phase: 6 of 6 (Dashboard y Vista Contador) — IN PROGRESS
+Plan: 1 of 3 in current phase — COMPLETE
+Status: Phase 6 Plan 1 complete, ready for Plan 2
+Last activity: 2026-03-05 — Completed 06-01 (Dashboard KPI Aggregation and Components)
 
-Progress: [███░░░░░░░] 33%
+Progress: [████████░░] 85%
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 04-checklist-de-produccion P02 | 8 | 2 tasks | 2 files |
 | Phase 05-generacion-de-pdfs P01 | 3 | 2 tasks | 7 files |
 | Phase 05-generacion-de-pdfs P02 | 3 | 2 tasks | 5 files |
+| Phase 06-dashboard-y-vista-contador P01 | 3 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,9 @@ Recent decisions affecting current work:
 - [Phase 05-generacion-de-pdfs]: costo_proveedor and margen fetched in getProjectForQuote but consumed locally — never appear in QuoteProjectData return type (TypeScript enforces boundary)
 - [Phase 05-generacion-de-pdfs]: OrdenCompraTemplate uses OcLineItem with costoProveedor (not margen) — admin-only cost visibility confirmed by type shape test
 - [Phase 05-generacion-de-pdfs]: Supabase joined suppliers relation typed as array — normalized with Array.isArray check before property access
+- [Phase 06-01]: Pure helpers (aggregateDashboardKpis, aggregatePipelineSummary, aggregateSupplierDebt) exported separately from server query functions — enables Vitest unit testing without Supabase mocking
+- [Phase 06-01]: server-only mock added to vitest alias config — allows importing modules with server-only in test environment while keeping Next.js enforcement in production
+- [Phase 06-01]: Number() coercion applied at pure helper entry point for all NUMERIC string values from Supabase JSON
 
 ### Pending Todos
 
@@ -126,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T05:38:04.317Z
-Stopped at: Completed 05-02-PLAN.md — Phase 5 Plan 2 complete
+Last session: 2026-03-05T13:47:30Z
+Stopped at: Completed 06-01-PLAN.md — Phase 6 Plan 1 complete
 Resume file: None
