@@ -95,11 +95,11 @@ Plans:
   2. The quote PDF has an editorial design: white background, minimal borders, monochrome palette, bottom-border-only rows — consistent with the W Chaput Studio brand identity
   3. Admin can generate a purchase order PDF for a specific supplier on a specific project — it shows only that supplier's line items with unit costs and totals
   4. Purchase order PDFs are inaccessible to accountant-role users; attempting to access the endpoint returns an authorization error
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: Quote PDF — API route, CotizacionTemplate (React PDF), getProjectForQuote() query selecting zero cost columns; download button
-- [ ] 05-02: Purchase order PDF — API route (admin-only), OrdenCompraTemplate, supplier-filtered line items with costs; download button
+- [ ] 05-01-PLAN.md — Quote PDF: install @react-pdf/renderer, CotizacionTemplate, pdf-styles, getProjectForQuote() safe query, cotizacion route handler, download button
+- [ ] 05-02-PLAN.md — Purchase order PDF: OrdenCompraTemplate, getProjectLineItemsBySupplier() query, admin-only orden-compra route handler, per-supplier OC buttons, human verification
 
 ### Phase 6: Dashboard y Vista Contador
 **Goal**: Admin sees the financial health of the entire business at a glance; the accountant sees cash flow and payment totals without ever seeing margins, costs, or profit
