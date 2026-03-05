@@ -82,10 +82,10 @@
 
 ### Vista Contador (CONT)
 
-- [ ] **CONT-01**: Accountant view shows project payment summaries: project name, client, grand total, collected, outstanding — no costs or margins
-- [ ] **CONT-02**: Accountant view shows supplier payment totals across all projects: total owed, total paid, outstanding — based on payment records only, not on cost columns from line items
-- [ ] **CONT-03**: Accountant view shows cash flow: list of all client payments received and supplier payments made, with dates and amounts
-- [ ] **CONT-04**: Accountant view is read-only — no create, edit, or delete actions
+- [x] **CONT-01**: Accountant view shows project payment summaries: project name, client, grand total, collected, outstanding — no costs or margins
+- [x] **CONT-02**: Accountant view shows supplier payment totals across all projects: total owed, total paid, outstanding — based on payment records only, not on cost columns from line items
+- [x] **CONT-03**: Accountant view shows cash flow: list of all client payments received and supplier payments made, with dates and amounts
+- [x] **CONT-04**: Accountant view is read-only — no create, edit, or delete actions
 
 ### UX & Platform (UX)
 
@@ -184,10 +184,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-03 | Phase 6 | Complete (06-01) |
 | DASH-04 | Phase 6 | Pending |
 | DASH-05 | Phase 6 | Pending |
-| CONT-01 | Phase 6 | Pending |
-| CONT-02 | Phase 6 | Pending |
-| CONT-03 | Phase 6 | Pending |
-| CONT-04 | Phase 6 | Pending |
+| CONT-01 | Phase 6 | Complete (06-03) |
+| CONT-02 | Phase 6 | Complete (06-03) |
+| CONT-03 | Phase 6 | Complete (06-03) |
+| CONT-04 | Phase 6 | Complete (06-03) |
 
 **Coverage:**
 - v1 requirements: 57 total

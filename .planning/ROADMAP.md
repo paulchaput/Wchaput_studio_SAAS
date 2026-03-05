@@ -116,7 +116,7 @@ Plans:
 Plans:
 - [x] 06-01-PLAN.md — Admin dashboard KPI cards, pipeline summary, supplier debt breakdown; aggregated queries + unit tests (TDD)
 - [ ] 06-02-PLAN.md — Recharts bar chart (monthly revenue/cost/profit) and 30-day cash flow projection; dynamic({ ssr: false }) wiring
-- [ ] 06-03-PLAN.md — gran_total migration, accountant /resumen and /flujo-efectivo pages, sidebar link, read-only enforcement; human verification checkpoint
+- [x] 06-03-PLAN.md — gran_total migration, accountant /resumen and /flujo-efectivo pages, sidebar link, read-only enforcement; human verification checkpoint
 
 ## Progress
 
@@ -132,4 +132,4 @@ Note: Phases 3 and 4 both depend on Phase 2 and are independent of each other. P
 | 3. Pagos y Proveedores | 3/3 | Complete   | 2026-03-05 |
 | 4. Checklist de Produccion | 2/2 | Complete   | 2026-03-05 |
 | 5. Generacion de PDFs | 2/2 | Complete   | 2026-03-05 |
-| 6. Dashboard y Vista Contador | 1/3 | In Progress | - |
+| 6. Dashboard y Vista Contador | 3/3 | Complete   | 2026-03-05 |

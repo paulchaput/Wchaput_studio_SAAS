@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-stopped_at: Completed 06-01-PLAN.md — Phase 6 Plan 1 complete
-last_updated: "2026-03-05T13:47:30Z"
-last_activity: 2026-03-05 — Completed 06-01 (Dashboard KPI Aggregation and Components)
+status: complete
+stopped_at: Completed 06-03-PLAN.md — Phase 6 Plan 3 complete — ALL PHASES DONE
+last_updated: "2026-03-05T08:00:00Z"
+last_activity: 2026-03-05 — Completed 06-03 (Accountant Financial Views)
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 13
-  completed_plans: 11
-  percent: 85
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** Partners can see the financial health of every active project and the business as a whole, generate client-facing PDFs that never expose internal costs, and track every payment to and from every stakeholder.
-**Current focus:** Phase 2 — Proyectos (Phase 1 complete)
+**Current focus:** ALL PHASES COMPLETE — milestone v1.0 delivered
 
 ## Current Position
 
-Phase: 6 of 6 (Dashboard y Vista Contador) — IN PROGRESS
-Plan: 1 of 3 in current phase — COMPLETE
-Status: Phase 6 Plan 1 complete, ready for Plan 2
-Last activity: 2026-03-05 — Completed 06-01 (Dashboard KPI Aggregation and Components)
+Phase: 6 of 6 (Dashboard y Vista Contador) — COMPLETE
+Plan: 3 of 3 in current phase — COMPLETE
+Status: All 6 phases complete — project milestone v1.0 achieved
+Last activity: 2026-03-05 — Completed 06-03 (Accountant Financial Views)
 
-Progress: [████████░░] 85%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
+- Total plans completed: 13
 - Average duration: 5 min
-- Total execution time: 15 min
+- Total execution time: ~65 min
 
 **By Phase:**
 
@@ -62,6 +62,7 @@ Progress: [████████░░] 85%
 | Phase 05-generacion-de-pdfs P01 | 3 | 2 tasks | 7 files |
 | Phase 05-generacion-de-pdfs P02 | 3 | 2 tasks | 5 files |
 | Phase 06-dashboard-y-vista-contador P01 | 3 min | 2 tasks | 8 files |
+| Phase 06-dashboard-y-vista-contador P03 | 8 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -119,17 +120,22 @@ Recent decisions affecting current work:
 - [Phase 06-01]: Pure helpers (aggregateDashboardKpis, aggregatePipelineSummary, aggregateSupplierDebt) exported separately from server query functions — enables Vitest unit testing without Supabase mocking
 - [Phase 06-01]: server-only mock added to vitest alias config — allows importing modules with server-only in test environment while keeping Next.js enforcement in production
 - [Phase 06-01]: Number() coercion applied at pure helper entry point for all NUMERIC string values from Supabase JSON
+- [Phase 06-03]: gran_total cached on projects table so accountant can read it without line_items access — RLS default-deny blocks accountant from line_items
+- [Phase 06-03]: syncGranTotal private helper called after all three line item mutations before revalidatePath
+- [Phase 06-03]: aggregateAccountantProjects reads gran_total via Number() coercion — matches Supabase NUMERIC string JSON response
+- [Phase 06-03]: aggregateSupplierTotals only includes suppliers with at least one payment (cash-basis view per CONT-02)
+- [Phase 06-03]: Neither accountant page imports Server Actions nor renders mutation controls — CONT-04 enforced at UI layer
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-- [Phase 5]: @react-pdf/renderer v3.x renderToBuffer vs renderToStream API — verify at implementation time
+None — all phases complete.
 
 ## Session Continuity
 
-Last session: 2026-03-05T13:47:30Z
-Stopped at: Completed 06-01-PLAN.md — Phase 6 Plan 1 complete
+Last session: 2026-03-05T08:00:00Z
+Stopped at: Completed 06-03-PLAN.md — Phase 6 Plan 3 complete — ALL PHASES DONE
 Resume file: None
