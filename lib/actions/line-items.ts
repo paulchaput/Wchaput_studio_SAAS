@@ -3,12 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
-import { DEFAULT_MARGEN } from '@/lib/calculations'
 
 // Zod schema — margen entered as integer percent (e.g. 50) and transformed to decimal (0.50) for DB storage.
-// DEFAULT_MARGEN = 0.50, so default percent = 50.
-const _defaultMargenPercent = DEFAULT_MARGEN * 100
-
+// DEFAULT_MARGEN = 0.50, so default percent = 50. Coercion: 50 → 0.50
 const lineItemSchema = z.object({
   project_id: z.string().uuid(),
   descripcion: z.string().min(1, 'La descripción es requerida'),

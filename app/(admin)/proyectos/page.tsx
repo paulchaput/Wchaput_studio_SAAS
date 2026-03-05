@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { getProjects } from '@/lib/queries/projects'
 import { formatMXN, formatFecha } from '@/lib/formatters'
-import { PIPELINE_STAGES } from '@/lib/calculations'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {

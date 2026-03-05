@@ -20,12 +20,12 @@ export function ProjectStatusPipeline({
   const prevStage = currentIndex > 0 ? stages[currentIndex - 1] : null
 
   const advanceAction: ((formData: FormData) => Promise<void>) | null = nextStage
-    ? async (_formData: FormData) => {
+    ? async () => {
         await updateProjectStatusAction(projectId, nextStage)
       }
     : null
   const revertAction: ((formData: FormData) => Promise<void>) | null = prevStage
-    ? async (_formData: FormData) => {
+    ? async () => {
         await updateProjectStatusAction(projectId, prevStage)
       }
     : null

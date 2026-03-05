@@ -1,7 +1,7 @@
 'use client'
 
 import { LineItem } from '@/lib/types'
-import { calcPrecioVenta, calcTotalVenta, calcTotalCosto } from '@/lib/calculations'
+import { calcPrecioVenta, calcTotalVenta } from '@/lib/calculations'
 import { formatMXN, margenToPercent } from '@/lib/formatters'
 import { deleteLineItemAction } from '@/lib/actions/line-items'
 import { LineItemForm } from '@/components/projects/LineItemForm'
@@ -43,7 +43,7 @@ export function LineItemTable({ lineItems, suppliers, projectId }: LineItemTable
           {lineItems.map((item) => {
             const precioVenta = calcPrecioVenta(item.costo_proveedor, item.margen)
             const totalVenta = calcTotalVenta(precioVenta, item.cantidad)
-            const _totalCosto = calcTotalCosto(item.costo_proveedor, item.cantidad)
+
 
             return (
               <tr key={item.id} className="border-t hover:bg-muted/30 transition-colors">
