@@ -53,10 +53,10 @@
 
 ### Proveedores / Suppliers (PROV)
 
-- [ ] **PROV-01**: User can create and manage a supplier directory with: name, contact name, phone, email, notes
-- [ ] **PROV-02**: Default suppliers Innovika and El Roble are pre-seeded
-- [ ] **PROV-03**: User can view a supplier detail page showing: all projects with line items from that supplier, total owed across all projects, total paid, outstanding balance
-- [ ] **PROV-04**: Supplier balance is always formula-driven (sum of costs across projects minus payments), never manually entered
+- [x] **PROV-01**: User can create and manage a supplier directory with: name, contact name, phone, email, notes
+- [x] **PROV-02**: Default suppliers Innovika and El Roble are pre-seeded
+- [x] **PROV-03**: User can view a supplier detail page showing: all projects with line items from that supplier, total owed across all projects, total paid, outstanding balance
+- [x] **PROV-04**: Supplier balance is always formula-driven (sum of costs across projects minus payments), never manually entered
 
 ### Checklist de Proyecto (CHEC)
 
@@ -162,10 +162,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PAY-03 | Phase 3 | Pending |
 | PAY-04 | Phase 3 | Pending |
 | PAY-05 | Phase 3 | Pending |
-| PROV-01 | Phase 3 | Pending |
-| PROV-02 | Phase 3 | Pending |
-| PROV-03 | Phase 3 | Pending |
-| PROV-04 | Phase 3 | Pending |
+| PROV-01 | Phase 3 | Complete |
+| PROV-02 | Phase 3 | Complete |
+| PROV-03 | Phase 3 | Complete |
+| PROV-04 | Phase 3 | Complete |
 | CHEC-01 | Phase 4 | Pending |
 | CHEC-02 | Phase 4 | Pending |
 | CHEC-03 | Phase 4 | Pending |

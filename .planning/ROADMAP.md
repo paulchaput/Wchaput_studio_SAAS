@@ -129,7 +129,7 @@ Note: Phases 3 and 4 both depend on Phase 2 and are independent of each other. P
 |-------|----------------|--------|-----------|
 | 1. Fundacion | 1/3 | In Progress|  |
 | 2. Proyectos y Partidas | 2/3 | In Progress|  |
-| 3. Pagos y Proveedores | 0/3 | Not started | - |
+| 3. Pagos y Proveedores | 1/3 | In Progress|  |
 | 4. Checklist de Produccion | 0/2 | Not started | - |
 | 5. Generacion de PDFs | 0/2 | Not started | - |
 | 6. Dashboard y Vista Contador | 0/3 | Not started | - |

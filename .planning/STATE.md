@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-03-PLAN.md — Phase 2 complete
-last_updated: "2026-03-05T02:23:46.859Z"
+stopped_at: Completed 03-01-PLAN.md — Phase 3 Plan 1 complete
+last_updated: "2026-03-05T04:03:52.103Z"
 last_activity: 2026-03-04 — Completed 01-03 (Auth Flow and Dark Sidebar)
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 6
-  completed_plans: 3
+  total_plans: 9
+  completed_plans: 4
   percent: 33
 ---
 
@@ -54,6 +54,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 02-proyectos-y-partidas P02 | 6 min | 2 tasks | 13 files |
 | Phase 02-proyectos-y-partidas P03 | 27 | 2 tasks | 8 files |
 | Phase 02-proyectos-y-partidas P03 | 27 | 3 tasks | 9 files |
+| Phase 03-pagos-y-proveedores P01 | 15 | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,9 @@ Recent decisions affecting current work:
 - [Phase 02-03]: deleteLineItemAction accepts FormData (not string args) — uses hidden inputs pattern for type-safe form action assignment
 - [Phase 02-03]: Shadcn Dialog and Separator created manually from radix-ui (already installed) rather than npx shadcn@latest add which would fail in environment
 - [Phase 02-03]: Zod margen transform (v => v / 100) is the single source of truth for percent-to-decimal conversion — components display integers, DB stores decimals
+- [Phase 03-pagos-y-proveedores]: ANTICIPO_RATE=0.70 and SALDO_RATE=0.30 exported as named constants from calculations.ts — zero inline occurrences allowed in components
+- [Phase 03-pagos-y-proveedores]: getSupplierWithDetails uses two batch queries (line_items + payments_supplier) — never N+1 per project (PROV-03)
+- [Phase 03-pagos-y-proveedores]: Number(p.monto) coercion at reduce entry point — Supabase returns NUMERIC(12,2) as strings in JSON
 
 ### Pending Todos
 
@@ -99,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T01:45:47.876Z
-Stopped at: Completed 02-03-PLAN.md — Phase 2 complete
+Last session: 2026-03-05T04:03:52.101Z
+Stopped at: Completed 03-01-PLAN.md — Phase 3 Plan 1 complete
 Resume file: None
