@@ -68,9 +68,9 @@
 
 ### Órdenes de Compra (OC)
 
-- [ ] **OC-01**: User can generate a Purchase Order (orden de compra) PDF for a specific supplier on a specific project
-- [ ] **OC-02**: The PO PDF shows: W Chaput Studio header, supplier name and contact, project name, line items filtered to that supplier (description, quantity, unit cost, total cost)
-- [ ] **OC-03**: Purchase Order PDFs are accessible only to admin role; they contain supplier costs and are never client-facing
+- [x] **OC-01**: User can generate a Purchase Order (orden de compra) PDF for a specific supplier on a specific project
+- [x] **OC-02**: The PO PDF shows: W Chaput Studio header, supplier name and contact, project name, line items filtered to that supplier (description, quantity, unit cost, total cost)
+- [x] **OC-03**: Purchase Order PDFs are accessible only to admin role; they contain supplier costs and are never client-facing
 
 ### Dashboard Principal (DASH)
 
@@ -176,9 +176,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUOT-03 | Phase 5 | Complete |
 | QUOT-04 | Phase 5 | Complete |
 | QUOT-05 | Phase 5 | Complete |
-| OC-01 | Phase 5 | Pending |
-| OC-02 | Phase 5 | Pending |
-| OC-03 | Phase 5 | Pending |
+| OC-01 | Phase 5 | Complete |
+| OC-02 | Phase 5 | Complete |
+| OC-03 | Phase 5 | Complete |
 | DASH-01 | Phase 6 | Pending |
 | DASH-02 | Phase 6 | Pending |
 | DASH-03 | Phase 6 | Pending |

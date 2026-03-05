@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Proyectos y Partidas** - Project registry with 6-stage pipeline, line items with auto-calculated margins and totals
 - [x] **Phase 3: Pagos y Proveedores** - Client payment tracking, supplier directory, and supplier payment management (completed 2026-03-05)
 - [x] **Phase 4: Checklist de Produccion** - 30-task production checklist seeded at project creation across 4 operational phases (completed 2026-03-05)
-- [ ] **Phase 5: Generacion de PDFs** - Client-facing quote PDF and admin-only purchase order PDF
+- [x] **Phase 5: Generacion de PDFs** - Client-facing quote PDF and admin-only purchase order PDF (completed 2026-03-05)
 - [ ] **Phase 6: Dashboard y Vista Contador** - Admin KPI dashboard with charts and read-only accountant financial view
 
 ## Phase Details
@@ -131,5 +131,5 @@ Note: Phases 3 and 4 both depend on Phase 2 and are independent of each other. P
 | 2. Proyectos y Partidas | 2/3 | In Progress|  |
 | 3. Pagos y Proveedores | 3/3 | Complete   | 2026-03-05 |
 | 4. Checklist de Produccion | 2/2 | Complete   | 2026-03-05 |
-| 5. Generacion de PDFs | 1/2 | In Progress|  |
+| 5. Generacion de PDFs | 2/2 | Complete   | 2026-03-05 |
 | 6. Dashboard y Vista Contador | 0/3 | Not started | - |
