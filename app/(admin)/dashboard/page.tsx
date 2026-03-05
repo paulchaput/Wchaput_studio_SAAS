@@ -1,18 +1,26 @@
+import dynamic from 'next/dynamic'
 import {
   getDashboardKpis,
   getPipelineSummary,
   getSupplierDebtBreakdown,
+  getMonthlyFinancials,
+  getCashFlowProjection,
 } from '@/lib/queries/dashboard'
 import { KpiCard } from '@/components/dashboard/KpiCard'
 import { PipelineSummary } from '@/components/dashboard/PipelineSummary'
 import { SupplierDebtBreakdown } from '@/components/dashboard/SupplierDebtBreakdown'
 import { formatMXN } from '@/lib/formatters'
 
+const RevenueChart = dynamic(() => import('@/components/dashboard/RevenueChart'), { ssr: false })
+const CashFlowChart = dynamic(() => import('@/components/dashboard/CashFlowChart'), { ssr: false })
+
 export default async function DashboardPage() {
-  const [kpis, pipelineCounts, supplierDebt] = await Promise.all([
+  const [kpis, pipelineCounts, supplierDebt, monthlyData, cashFlow] = await Promise.all([
     getDashboardKpis(),
     getPipelineSummary(),
     getSupplierDebtBreakdown(),
+    getMonthlyFinancials(),
+    getCashFlowProjection(),
   ])
 
   return (
@@ -50,6 +58,18 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <PipelineSummary pipelineCounts={pipelineCounts} />
         <SupplierDebtBreakdown deuda={supplierDebt} />
+      </div>
+
+      {/* Monthly revenue/cost/profit bar chart */}
+      <div className="rounded-lg border bg-card p-6">
+        <h2 className="text-lg font-semibold mb-4">Ingresos vs. Costos (últimos 6 meses)</h2>
+        <RevenueChart data={monthlyData} />
+      </div>
+
+      {/* 30-day cash flow projection */}
+      <div className="rounded-lg border bg-card p-6">
+        <h2 className="text-lg font-semibold mb-4">Flujo de Efectivo — Próximos 30 días</h2>
+        <CashFlowChart data={cashFlow} />
       </div>
     </div>
   )
