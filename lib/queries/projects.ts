@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
-import { calcSubtotal, calcTotal, calcPrecioVenta, calcTotalVenta, calcIVA, calcAnticipo, calcSaldo } from '@/lib/calculations'
+import { calcSubtotal, calcTotal, calcPrecioVenta, calcTotalVenta, calcIVA, calcAnticipo, calcSaldo, calcTotalCosto } from '@/lib/calculations'
 import type { QuoteProjectData, QuoteLineItem } from '@/lib/pdf/CotizacionTemplate'
+import type { OcLineItem, OcProjectData } from '@/lib/pdf/OrdenCompraTemplate'
 
 export async function getProjects() {
   const supabase = await createClient()
@@ -99,5 +100,67 @@ export async function getProjectForQuote(id: string): Promise<QuoteProjectData |
     anticipo: calcAnticipo(granTotal),
     saldo: calcSaldo(granTotal),
     lineItems,
+  }
+}
+
+export async function getProjectLineItemsBySupplier(
+  projectId: string,
+  supplierId: string
+): Promise<OcProjectData | null> {
+  const supabase = await createClient()
+
+  // Fetch project name
+  const { data: project, error: projError } = await supabase
+    .from('projects')
+    .select('id, nombre')
+    .eq('id', projectId)
+    .single()
+
+  if (projError || !project) return null
+
+  // Fetch supplier-filtered line items with supplier contact info
+  const { data: items, error: itemsError } = await supabase
+    .from('line_items')
+    .select(`
+      id, descripcion, referencia, dimensiones,
+      cantidad, costo_proveedor,
+      suppliers ( id, nombre, contacto, email, telefono )
+    `)
+    .eq('project_id', projectId)
+    .eq('proveedor_id', supplierId)
+
+  if (itemsError) return null
+
+  const lineItems: OcLineItem[] = (items ?? []).map(li => {
+    const costo = Number(li.costo_proveedor)
+    return {
+      descripcion: li.descripcion,
+      referencia: li.referencia,
+      dimensiones: li.dimensiones,
+      cantidad: li.cantidad,
+      costoProveedor: costo,
+      totalCosto: calcTotalCosto(costo, li.cantidad),
+    }
+  })
+
+  const rawSupplier = items?.[0]?.suppliers
+  // Supabase types joined relations as arrays; normalize to single object
+  const supplierRow = Array.isArray(rawSupplier) ? rawSupplier[0] : rawSupplier
+  if (!supplierRow) return null
+
+  const granTotalCosto = lineItems.reduce((sum, li) => sum + li.totalCosto, 0)
+
+  return {
+    projectId,
+    projectNombre: project.nombre,
+    supplier: {
+      nombre: supplierRow.nombre,
+      contacto: supplierRow.contacto,
+      email: supplierRow.email,
+      telefono: supplierRow.telefono,
+    },
+    fecha: new Date().toISOString().split('T')[0],
+    lineItems,
+    granTotalCosto,
   }
 }
