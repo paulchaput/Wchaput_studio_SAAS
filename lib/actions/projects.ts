@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { PIPELINE_STAGES } from '@/lib/calculations'
+import { CHECKLIST_SEED } from '@/lib/checklist-tasks'
 
 const projectSchema = z.object({
   nombre: z.string().min(1, 'El nombre del proyecto es requerido'),
@@ -35,14 +36,36 @@ export async function createProjectAction(
   }
 
   const supabase = await createClient()
-  const { error } = await supabase.from('projects').insert(parsed.data)
+  const { data: project, error: projectError } = await supabase
+    .from('projects')
+    .insert(parsed.data)
+    .select('id')
+    .single()
 
-  if (error) {
-    return { error: error.message }
+  if (projectError || !project) {
+    return { error: projectError?.message ?? 'Error al crear el proyecto' }
+  }
+
+  // Bulk-seed 30 checklist tasks
+  const tasks = CHECKLIST_SEED.map((task, index) => ({
+    project_id: project.id,
+    fase: task.fase,
+    nombre: task.nombre,
+    sort_order: index,
+    status: 'Pendiente' as const,
+  }))
+
+  const { error: checklistError } = await supabase
+    .from('checklist_tasks')
+    .insert(tasks)
+
+  if (checklistError) {
+    // Non-fatal: project created; log but do not block redirect
+    console.error('Checklist seed failed:', checklistError.message)
   }
 
   revalidatePath('/proyectos')
-  redirect('/proyectos')
+  redirect('/proyectos/' + project.id)
 }
 
 export async function updateProjectAction(
