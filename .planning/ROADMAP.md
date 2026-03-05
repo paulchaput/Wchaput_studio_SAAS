@@ -131,5 +131,5 @@ Note: Phases 3 and 4 both depend on Phase 2 and are independent of each other. P
 | 2. Proyectos y Partidas | 2/3 | In Progress|  |
 | 3. Pagos y Proveedores | 3/3 | Complete   | 2026-03-05 |
 | 4. Checklist de Produccion | 2/2 | Complete   | 2026-03-05 |
-| 5. Generacion de PDFs | 0/2 | Not started | - |
+| 5. Generacion de PDFs | 1/2 | In Progress|  |
 | 6. Dashboard y Vista Contador | 0/3 | Not started | - |

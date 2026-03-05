@@ -37,11 +37,11 @@
 
 ### Cotización PDF (QUOT)
 
-- [ ] **QUOT-01**: User can generate a PDF quote (cotización) from a project's line items
-- [ ] **QUOT-02**: The PDF shows: W Chaput Studio logo (top-right), large "COTIZACIÓN" heading, client info (name, quote number, date), line items table (description, quantity, unit price, total), subtotal, IVA 16%, grand total, payment schedule (70% anticipo / 30% saldo), terms and conditions
-- [ ] **QUOT-03**: The PDF never shows: supplier costs, margins, internal notes, profit figures, or any field prefixed "costo" or "margen"
-- [ ] **QUOT-04**: The PDF design is clean and editorial: white background, minimal borders, monochrome palette, bottom-border-only on line item rows
-- [ ] **QUOT-05**: User can download the PDF from the project detail page
+- [x] **QUOT-01**: User can generate a PDF quote (cotización) from a project's line items
+- [x] **QUOT-02**: The PDF shows: W Chaput Studio logo (top-right), large "COTIZACIÓN" heading, client info (name, quote number, date), line items table (description, quantity, unit price, total), subtotal, IVA 16%, grand total, payment schedule (70% anticipo / 30% saldo), terms and conditions
+- [x] **QUOT-03**: The PDF never shows: supplier costs, margins, internal notes, profit figures, or any field prefixed "costo" or "margen"
+- [x] **QUOT-04**: The PDF design is clean and editorial: white background, minimal borders, monochrome palette, bottom-border-only on line item rows
+- [x] **QUOT-05**: User can download the PDF from the project detail page
 
 ### Seguimiento de Pagos (PAY)
 
@@ -171,11 +171,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CHEC-03 | Phase 4 | Complete |
 | CHEC-04 | Phase 4 | Complete |
 | CHEC-05 | Phase 4 | Complete |
-| QUOT-01 | Phase 5 | Pending |
-| QUOT-02 | Phase 5 | Pending |
-| QUOT-03 | Phase 5 | Pending |
-| QUOT-04 | Phase 5 | Pending |
-| QUOT-05 | Phase 5 | Pending |
+| QUOT-01 | Phase 5 | Complete |
+| QUOT-02 | Phase 5 | Complete |
+| QUOT-03 | Phase 5 | Complete |
+| QUOT-04 | Phase 5 | Complete |
+| QUOT-05 | Phase 5 | Complete |
 | OC-01 | Phase 5 | Pending |
 | OC-02 | Phase 5 | Pending |
 | OC-03 | Phase 5 | Pending |

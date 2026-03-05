@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-02-PLAN.md — Phase 4 Plan 2 complete
-last_updated: "2026-03-05T04:51:14.962Z"
+stopped_at: Completed 05-01-PLAN.md — Phase 5 Plan 1 complete
+last_updated: "2026-03-05T05:30:21.534Z"
 last_activity: 2026-03-04 — Completed 01-03 (Auth Flow and Dark Sidebar)
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 11
-  completed_plans: 8
+  total_plans: 13
+  completed_plans: 9
   percent: 33
 ---
 
@@ -59,6 +59,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 03-pagos-y-proveedores P03 | 5 | 3 tasks | 3 files |
 | Phase 04-checklist-de-produccion P01 | 3 | 2 tasks | 8 files |
 | Phase 04-checklist-de-produccion P02 | 8 | 2 tasks | 2 files |
+| Phase 05-generacion-de-pdfs P01 | 3 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,9 @@ Recent decisions affecting current work:
 - [Phase 04-checklist-de-produccion]: ChecklistPanel uses useState for optimistic status update — avoids full-page flash on every dropdown change
 - [Phase 04-checklist-de-produccion]: Role lookup before Promise.all — isAdmin drives conditional getChecklistTasks fetch
 - [Phase 04-checklist-de-produccion]: onBlur for assignee/due_date — prevents per-keystroke Server Action calls on 30 independent inputs
+- [Phase 05-generacion-de-pdfs]: route.tsx (not route.ts) for cotizacion route handler — JSX requires .tsx extension even in Next.js API routes
+- [Phase 05-generacion-de-pdfs]: renderToStream element cast as any — DocumentProps vs CotizacionTemplateProps mismatch; established community pattern
+- [Phase 05-generacion-de-pdfs]: costo_proveedor and margen fetched in getProjectForQuote but consumed locally — never appear in QuoteProjectData return type (TypeScript enforces boundary)
 
 ### Pending Todos
 
@@ -119,6 +123,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T04:47:13.954Z
-Stopped at: Completed 04-02-PLAN.md — Phase 4 Plan 2 complete
+Last session: 2026-03-05T05:30:21.532Z
+Stopped at: Completed 05-01-PLAN.md — Phase 5 Plan 1 complete
 Resume file: None
