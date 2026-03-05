@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { calcSubtotal, calcTotal } from '@/lib/calculations'
+import { calcSubtotal, calcTotal, calcPrecioVenta, calcTotalVenta, calcIVA, calcAnticipo, calcSaldo } from '@/lib/calculations'
+import type { QuoteProjectData, QuoteLineItem } from '@/lib/pdf/CotizacionTemplate'
 
 export async function getProjects() {
   const supabase = await createClient()
@@ -47,4 +48,56 @@ export async function getProjectWithLineItems(id: string) {
 
   if (error) throw error
   return data
+}
+
+export async function getProjectForQuote(id: string): Promise<QuoteProjectData | null> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('projects')
+    .select(`
+      id, nombre, cliente_nombre, numero_cotizacion,
+      fecha_cotizacion, salesperson,
+      line_items (
+        id, descripcion, referencia, cantidad,
+        costo_proveedor, margen
+      )
+    `)
+    .eq('id', id)
+    .single()
+
+  if (error || !data) return null
+
+  // Map to safe QuoteLineItem — costo_proveedor and margen are used only for calculation, NOT passed forward
+  const lineItems: QuoteLineItem[] = (data.line_items ?? []).map(li => {
+    const costo = Number(li.costo_proveedor)
+    const margen = Number(li.margen)
+    const precioVenta = calcPrecioVenta(costo, margen)
+    const totalVenta = calcTotalVenta(precioVenta, li.cantidad)
+    return {
+      descripcion: li.descripcion,
+      referencia: li.referencia,
+      cantidad: li.cantidad,
+      precioVenta,
+      totalVenta,
+    }
+  })
+
+  const subtotal = calcSubtotal(data.line_items ?? [])
+  const iva = calcIVA(subtotal)
+  const granTotal = calcTotal(subtotal)
+
+  return {
+    id: data.id,
+    nombre: data.nombre,
+    cliente_nombre: data.cliente_nombre,
+    numero_cotizacion: data.numero_cotizacion,
+    fecha_cotizacion: data.fecha_cotizacion,
+    salesperson: data.salesperson,
+    subtotal,
+    iva,
+    granTotal,
+    anticipo: calcAnticipo(granTotal),
+    saldo: calcSaldo(granTotal),
+    lineItems,
+  }
 }

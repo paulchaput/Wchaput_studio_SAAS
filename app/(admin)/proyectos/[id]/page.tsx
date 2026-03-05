@@ -156,7 +156,21 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
         </>
       )}
 
-      {/* Documentos / PDF — Phase 5 */}
+      {/* Documentos / PDF */}
+      <Separator />
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Documentos</h2>
+        <div className="flex flex-wrap gap-3">
+          <a
+            href={`/proyectos/${id}/cotizacion`}
+            className="inline-flex items-center gap-2 text-sm font-medium border px-3 py-1.5 rounded hover:bg-muted transition-colors"
+            download
+          >
+            Descargar Cotizacion PDF
+          </a>
+          {/* Ordenes de Compra — added in 05-02-PLAN */}
+        </div>
+      </div>
     </div>
   )
 }
