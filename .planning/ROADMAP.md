@@ -111,12 +111,12 @@ Plans:
   3. Dashboard shows a monthly revenue vs. cost vs. profit bar chart (Recharts) and a 30-day cash flow projection
   4. Accountant view shows project payment summaries (name, client, grand total, collected, outstanding) and supplier payment totals — no cost columns, no margin figures, no profit data
   5. Accountant view is fully read-only — no create, edit, or delete controls are rendered for accountant-role users
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 06-01: Admin dashboard — KPI cards, pipeline summary, supplier debt breakdown; single aggregated JOIN query for all KPI data
-- [ ] 06-02: Revenue/cost/profit chart and 30-day cash flow projection — Recharts with dynamic({ ssr: false })
-- [ ] 06-03: Accountant views — /resumen and /flujo-efectivo pages; project_financials_accountant view; read-only enforcement
+- [ ] 06-01-PLAN.md — Admin dashboard KPI cards, pipeline summary, supplier debt breakdown; aggregated queries + unit tests (TDD)
+- [ ] 06-02-PLAN.md — Recharts bar chart (monthly revenue/cost/profit) and 30-day cash flow projection; dynamic({ ssr: false }) wiring
+- [ ] 06-03-PLAN.md — gran_total migration, accountant /resumen and /flujo-efectivo pages, sidebar link, read-only enforcement; human verification checkpoint
 
 ## Progress
 
