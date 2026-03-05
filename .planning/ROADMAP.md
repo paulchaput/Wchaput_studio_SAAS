@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Fundacion** - Supabase schema, auth infrastructure, RLS, two-role login flow, and app shell layout
 - [ ] **Phase 2: Proyectos y Partidas** - Project registry with 6-stage pipeline, line items with auto-calculated margins and totals
-- [ ] **Phase 3: Pagos y Proveedores** - Client payment tracking, supplier directory, and supplier payment management
+- [x] **Phase 3: Pagos y Proveedores** - Client payment tracking, supplier directory, and supplier payment management (completed 2026-03-05)
 - [ ] **Phase 4: Checklist de Produccion** - 28-task production checklist seeded at project creation across 4 operational phases
 - [ ] **Phase 5: Generacion de PDFs** - Client-facing quote PDF and admin-only purchase order PDF
 - [ ] **Phase 6: Dashboard y Vista Contador** - Admin KPI dashboard with charts and read-only accountant financial view
@@ -129,7 +129,7 @@ Note: Phases 3 and 4 both depend on Phase 2 and are independent of each other. P
 |-------|----------------|--------|-----------|
 | 1. Fundacion | 1/3 | In Progress|  |
 | 2. Proyectos y Partidas | 2/3 | In Progress|  |
-| 3. Pagos y Proveedores | 1/3 | In Progress|  |
+| 3. Pagos y Proveedores | 3/3 | Complete   | 2026-03-05 |
 | 4. Checklist de Produccion | 0/2 | Not started | - |
 | 5. Generacion de PDFs | 0/2 | Not started | - |
 | 6. Dashboard y Vista Contador | 0/3 | Not started | - |
