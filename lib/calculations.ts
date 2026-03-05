@@ -88,3 +88,47 @@ export function calcTotalCostoProyecto(
 export function calcUtilidad(subtotal: number, totalCosto: number): number {
   return subtotal - totalCosto
 }
+
+// Payment rate constants (PAY-02 — never inline these literals)
+export const ANTICIPO_RATE = 0.70
+export const SALDO_RATE = 0.30
+
+/** Expected anticipo = 70% of grand total */
+export function calcAnticipo(granTotal: number): number {
+  return granTotal * ANTICIPO_RATE
+}
+
+/** Expected saldo (finiquito) = 30% of grand total */
+export function calcSaldo(granTotal: number): number {
+  return granTotal * SALDO_RATE
+}
+
+/** Total collected from client payments */
+export function calcTotalPagadoCliente(
+  payments: Array<{ monto: number }>
+): number {
+  return payments.reduce((sum, p) => sum + Number(p.monto), 0)
+}
+
+/** Outstanding client balance = granTotal - totalPagado */
+export function calcSaldoPendienteCliente(
+  granTotal: number,
+  totalPagado: number
+): number {
+  return granTotal - totalPagado
+}
+
+/** Total paid to a supplier (across payments) */
+export function calcTotalPagadoProveedor(
+  payments: Array<{ monto: number }>
+): number {
+  return payments.reduce((sum, p) => sum + Number(p.monto), 0)
+}
+
+/** Outstanding supplier balance = totalOwed - totalPagado */
+export function calcSaldoProveedor(
+  totalOwed: number,
+  totalPagado: number
+): number {
+  return totalOwed - totalPagado
+}

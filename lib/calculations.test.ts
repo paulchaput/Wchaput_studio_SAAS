@@ -11,6 +11,15 @@ import {
   IVA_RATE,
   DEFAULT_MARGEN,
   PIPELINE_STAGES,
+  // Payment calculation functions (Phase 03-01)
+  calcAnticipo,
+  calcSaldo,
+  calcTotalPagadoCliente,
+  calcSaldoPendienteCliente,
+  calcTotalPagadoProveedor,
+  calcSaldoProveedor,
+  ANTICIPO_RATE,
+  SALDO_RATE,
 } from './calculations'
 
 describe('calcPrecioVenta', () => {
@@ -73,6 +82,60 @@ describe('calcTotalCostoProyecto', () => {
 describe('calcUtilidad', () => {
   it('returns 400 for subtotal=1000, totalCosto=600 (IVA excluded)', () => {
     expect(calcUtilidad(1000, 600)).toBeCloseTo(400, 2)
+  })
+})
+
+describe('payment calculations', () => {
+  it('ANTICIPO_RATE === 0.70', () => {
+    expect(ANTICIPO_RATE).toBe(0.70)
+  })
+
+  it('SALDO_RATE === 0.30', () => {
+    expect(SALDO_RATE).toBe(0.30)
+  })
+
+  it('calcAnticipo(1000) === 700 (70%)', () => {
+    expect(calcAnticipo(1000)).toBe(700)
+  })
+
+  it('calcAnticipo(0) === 0', () => {
+    expect(calcAnticipo(0)).toBe(0)
+  })
+
+  it('calcSaldo(1000) === 300 (30%)', () => {
+    expect(calcSaldo(1000)).toBe(300)
+  })
+
+  it('calcTotalPagadoCliente([{monto:500},{monto:200}]) === 700', () => {
+    expect(calcTotalPagadoCliente([{ monto: 500 }, { monto: 200 }])).toBe(700)
+  })
+
+  it('calcTotalPagadoCliente([]) === 0', () => {
+    expect(calcTotalPagadoCliente([])).toBe(0)
+  })
+
+  it('calcSaldoPendienteCliente(1000, 700) === 300', () => {
+    expect(calcSaldoPendienteCliente(1000, 700)).toBe(300)
+  })
+
+  it('calcSaldoPendienteCliente(1000, 0) === 1000', () => {
+    expect(calcSaldoPendienteCliente(1000, 0)).toBe(1000)
+  })
+
+  it('calcTotalPagadoProveedor([{monto:300},{monto:100}]) === 400', () => {
+    expect(calcTotalPagadoProveedor([{ monto: 300 }, { monto: 100 }])).toBe(400)
+  })
+
+  it('calcTotalPagadoProveedor([]) === 0', () => {
+    expect(calcTotalPagadoProveedor([])).toBe(0)
+  })
+
+  it('calcSaldoProveedor(500, 300) === 200', () => {
+    expect(calcSaldoProveedor(500, 300)).toBe(200)
+  })
+
+  it('calcSaldoProveedor(500, 500) === 0', () => {
+    expect(calcSaldoProveedor(500, 500)).toBe(0)
   })
 })
 
