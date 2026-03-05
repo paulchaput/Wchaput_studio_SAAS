@@ -3,12 +3,15 @@ import Link from 'next/link'
 
 import { getProjectWithLineItems } from '@/lib/queries/projects'
 import { getSuppliers } from '@/lib/queries/suppliers'
+import { getClientPayments } from '@/lib/queries/payments'
+import { calcSubtotal, calcTotal } from '@/lib/calculations'
 import { formatFecha } from '@/lib/formatters'
 
 import { ProjectStatusPipeline } from '@/components/projects/ProjectStatusPipeline'
 import { LineItemTable } from '@/components/projects/LineItemTable'
 import { LineItemForm } from '@/components/projects/LineItemForm'
 import { ProjectFinancialSummary } from '@/components/projects/ProjectFinancialSummary'
+import { ClientPaymentPanel } from '@/components/projects/ClientPaymentPanel'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 
@@ -19,14 +22,16 @@ interface PageProps {
 export default async function ProyectoDetailPage({ params }: PageProps) {
   const { id } = await params
 
-  const [project, suppliers] = await Promise.all([
+  const [project, suppliers, clientPayments] = await Promise.all([
     getProjectWithLineItems(id).catch(() => null),
     getSuppliers(),
+    getClientPayments(id),
   ])
 
   if (!project) notFound()
 
   const lineItems = project.line_items ?? []
+  const granTotal = calcTotal(calcSubtotal(lineItems))
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
@@ -85,6 +90,18 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
       {/* Financial Summary */}
       <ProjectFinancialSummary lineItems={lineItems} />
 
+      <Separator />
+
+      {/* Pagos del Cliente */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Pagos del Cliente</h2>
+        <ClientPaymentPanel
+          projectId={id}
+          granTotal={granTotal}
+          payments={clientPayments}
+        />
+      </div>
+
       {/* Notas Internas */}
       {project.notas && (
         <>
@@ -98,7 +115,6 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
         </>
       )}
 
-      {/* Pagos — Phase 3 */}
       {/* Checklist — Phase 4 */}
       {/* Documentos / PDF — Phase 5 */}
     </div>
