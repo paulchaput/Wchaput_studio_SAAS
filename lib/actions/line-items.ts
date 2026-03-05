@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { calcSubtotal, calcTotal } from '@/lib/calculations'
 
 // Zod schema — margen entered as integer percent (e.g. 50) and transformed to decimal (0.50) for DB storage.
 // DEFAULT_MARGEN = 0.50, so default percent = 50. Coercion: 50 → 0.50
@@ -18,6 +19,22 @@ const lineItemSchema = z.object({
   // This is the ONLY place where percent→decimal conversion happens.
   margen: z.coerce.number().min(0).max(99).transform(v => v / 100),
 })
+
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>
+
+async function syncGranTotal(supabase: SupabaseClient, projectId: string): Promise<void> {
+  const { data: items } = await supabase
+    .from('line_items')
+    .select('costo_proveedor, margen, cantidad')
+    .eq('project_id', projectId)
+  const subtotal = calcSubtotal((items ?? []).map(li => ({
+    costo_proveedor: Number(li.costo_proveedor),
+    margen: Number(li.margen),
+    cantidad: li.cantidad,
+  })))
+  const granTotal = calcTotal(subtotal)
+  await supabase.from('projects').update({ gran_total: granTotal }).eq('id', projectId)
+}
 
 export async function createLineItemAction(
   formData: FormData
@@ -41,6 +58,7 @@ export async function createLineItemAction(
 
   if (error) return { error: error.message }
 
+  await syncGranTotal(supabase, parsed.data.project_id)
   revalidatePath('/proyectos/' + parsed.data.project_id)
   return {}
 }
@@ -71,6 +89,7 @@ export async function updateLineItemAction(
 
   if (error) return { error: error.message }
 
+  await syncGranTotal(supabase, parsed.data.project_id)
   revalidatePath('/proyectos/' + parsed.data.project_id)
   return {}
 }
@@ -93,6 +112,7 @@ export async function deleteLineItemAction(
 
   if (error) return { error: error.message }
 
+  await syncGranTotal(supabase, projectId)
   revalidatePath('/proyectos/' + projectId)
   return {}
 }
