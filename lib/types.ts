@@ -65,3 +65,17 @@ export interface PaymentSupplier {
   notas: string | null
   created_at: string
 }
+
+export type ChecklistStatus = 'Pendiente' | 'En Proceso' | 'Completado' | 'Bloqueado' | 'N/A'
+// ChecklistFase is also exported from lib/checklist-tasks.ts — use whichever is more convenient
+
+export interface ChecklistTask {
+  id: string
+  project_id?: string
+  fase: 'Comercial' | 'Diseño y Especificaciones' | 'Producción' | 'Entrega y Cierre'
+  nombre: string
+  assignee: string | null
+  due_date: string | null   // ISO date string e.g. "2026-04-15"
+  status: ChecklistStatus
+  sort_order: number
+}
