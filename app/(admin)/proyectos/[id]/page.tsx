@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 import { getProjectWithLineItems } from '@/lib/queries/projects'
 import { getSuppliers } from '@/lib/queries/suppliers'
-import { getClientPayments } from '@/lib/queries/payments'
+import { getClientPayments, getSupplierPayments } from '@/lib/queries/payments'
 import { calcSubtotal, calcTotal } from '@/lib/calculations'
 import { formatFecha } from '@/lib/formatters'
 
@@ -12,6 +12,7 @@ import { LineItemTable } from '@/components/projects/LineItemTable'
 import { LineItemForm } from '@/components/projects/LineItemForm'
 import { ProjectFinancialSummary } from '@/components/projects/ProjectFinancialSummary'
 import { ClientPaymentPanel } from '@/components/projects/ClientPaymentPanel'
+import { SupplierPaymentPanel } from '@/components/projects/SupplierPaymentPanel'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 
@@ -22,10 +23,11 @@ interface PageProps {
 export default async function ProyectoDetailPage({ params }: PageProps) {
   const { id } = await params
 
-  const [project, suppliers, clientPayments] = await Promise.all([
+  const [project, suppliers, clientPayments, supplierPayments] = await Promise.all([
     getProjectWithLineItems(id).catch(() => null),
     getSuppliers(),
     getClientPayments(id),
+    getSupplierPayments(id),
   ])
 
   if (!project) notFound()
@@ -99,6 +101,19 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
           projectId={id}
           granTotal={granTotal}
           payments={clientPayments}
+        />
+      </div>
+
+      <Separator />
+
+      {/* Pagos a Proveedores */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Pagos a Proveedores</h2>
+        <SupplierPaymentPanel
+          projectId={id}
+          lineItems={lineItems}
+          payments={supplierPayments}
+          suppliers={suppliers}
         />
       </div>
 
