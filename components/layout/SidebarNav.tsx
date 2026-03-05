@@ -11,6 +11,7 @@ const adminNavItems = [
 
 const accountantNavItems = [
   { label: 'Resumen', href: '/resumen' },
+  { label: 'Flujo de Efectivo', href: '/flujo-efectivo' },
 ]
 
 interface SidebarNavProps {
