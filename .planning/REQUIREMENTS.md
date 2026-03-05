@@ -63,8 +63,8 @@
 - [x] **CHEC-01**: When a project is created, 30 checklist tasks are automatically seeded across 4 phases: Comercial (7), Diseño y Especificaciones (6), Producción (9), Entrega y Cierre (8)
 - [x] **CHEC-02**: Each task has: phase, name, assignee (text field), due date, status (Pendiente / En Proceso / Completado / Bloqueado / N/A)
 - [x] **CHEC-03**: User can update the status, assignee, and due date of any task
-- [ ] **CHEC-04**: Checklist displays grouped by phase with visual progress per phase
-- [ ] **CHEC-05**: Checklist is visible only to admin role (not accountant)
+- [x] **CHEC-04**: Checklist displays grouped by phase with visual progress per phase
+- [x] **CHEC-05**: Checklist is visible only to admin role (not accountant)
 
 ### Órdenes de Compra (OC)
 
@@ -169,8 +169,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CHEC-01 | Phase 4 | Complete |
 | CHEC-02 | Phase 4 | Complete |
 | CHEC-03 | Phase 4 | Complete |
-| CHEC-04 | Phase 4 | Pending |
-| CHEC-05 | Phase 4 | Pending |
+| CHEC-04 | Phase 4 | Complete |
+| CHEC-05 | Phase 4 | Complete |
 | QUOT-01 | Phase 5 | Pending |
 | QUOT-02 | Phase 5 | Pending |
 | QUOT-03 | Phase 5 | Pending |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-01-PLAN.md — Phase 4 Plan 1 complete
-last_updated: "2026-03-05T04:43:57.638Z"
+stopped_at: Completed 04-02-PLAN.md — Phase 4 Plan 2 complete
+last_updated: "2026-03-05T04:47:13.956Z"
 last_activity: 2026-03-04 — Completed 01-03 (Auth Flow and Dark Sidebar)
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 11
-  completed_plans: 7
+  completed_plans: 8
   percent: 33
 ---
 
@@ -58,6 +58,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 03-pagos-y-proveedores P02 | 2 | 2 tasks | 4 files |
 | Phase 03-pagos-y-proveedores P03 | 5 | 3 tasks | 3 files |
 | Phase 04-checklist-de-produccion P01 | 3 | 2 tasks | 8 files |
+| Phase 04-checklist-de-produccion P02 | 8 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,9 @@ Recent decisions affecting current work:
 - [Phase 04-checklist-de-produccion]: calcPhaseProgress treats N/A as completed — tasks opted-out count toward progress
 - [Phase 04-checklist-de-produccion]: Checklist seed in createProjectAction is non-fatal — project creation succeeds even if checklist insert fails
 - [Phase 04-checklist-de-produccion]: createProjectAction redirects to /proyectos/[id] (not /proyectos) after seeding
+- [Phase 04-checklist-de-produccion]: ChecklistPanel uses useState for optimistic status update — avoids full-page flash on every dropdown change
+- [Phase 04-checklist-de-produccion]: Role lookup before Promise.all — isAdmin drives conditional getChecklistTasks fetch
+- [Phase 04-checklist-de-produccion]: onBlur for assignee/due_date — prevents per-keystroke Server Action calls on 30 independent inputs
 
 ### Pending Todos
 
@@ -115,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T04:43:57.637Z
-Stopped at: Completed 04-01-PLAN.md — Phase 4 Plan 1 complete
+Last session: 2026-03-05T04:47:13.954Z
+Stopped at: Completed 04-02-PLAN.md — Phase 4 Plan 2 complete
 Resume file: None
