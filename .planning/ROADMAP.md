@@ -64,12 +64,12 @@ Plans:
   2. Partner can register supplier payments against a project — the per-project supplier summary shows total owed (from line item costs), total paid, and outstanding balance
   3. Supplier directory lists Innovika and El Roble pre-seeded; partner can add new suppliers with contact details
   4. Supplier detail page shows all projects with line items from that supplier, total owed across all projects, total paid, and current outstanding balance — all calculated from live data, never manually entered
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: Supplier directory — create, list, detail page with running balance (JOIN query, not per-row fetch)
-- [ ] 03-02: Client payment forms — anticipo + saldo registration; per-project payment summary calculations
-- [ ] 03-03: Supplier payment forms — per-project supplier payment registration; running balance view
+- [ ] 03-01-PLAN.md — Supplier directory (CRUD, list, detail), payment calculation functions + Vitest tests, Proveedores sidebar nav
+- [ ] 03-02-PLAN.md — Client payment registration (anticipo/finiquito/otro), per-project payment summary panel
+- [ ] 03-03-PLAN.md — Supplier payment registration per-project, double-revalidate balance update, human verification
 
 ### Phase 4: Checklist de Produccion
 **Goal**: Every project automatically has a 28-task production checklist across 4 operational phases that the admin can track to completion
