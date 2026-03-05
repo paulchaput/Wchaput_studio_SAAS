@@ -3,6 +3,8 @@ import {
   aggregateDashboardKpis,
   aggregatePipelineSummary,
   aggregateSupplierDebt,
+  aggregateMonthlyFinancials,
+  aggregateCashFlow,
 } from './dashboard'
 import { PIPELINE_STAGES } from '@/lib/calculations'
 
@@ -303,5 +305,202 @@ describe('aggregateSupplierDebt', () => {
     expect(result.Innovika).toBe(0)
     expect(result['El Roble']).toBe(0)
     expect(result.Otros).toBe(0)
+  })
+})
+
+// ─── aggregateMonthlyFinancials ───────────────────────────────────────────────
+
+type MockMonthlyProject = {
+  fecha_cotizacion: string
+  line_items: Array<{ costo_proveedor: number | string; margen: number | string; cantidad: number }>
+}
+
+describe('aggregateMonthlyFinancials', () => {
+  it('always returns exactly 6 MonthlyDataPoint entries', () => {
+    const result = aggregateMonthlyFinancials([], new Date('2026-03-15'))
+    expect(result).toHaveLength(6)
+  })
+
+  it('returns zeros for all months when no projects', () => {
+    const result = aggregateMonthlyFinancials([], new Date('2026-03-15'))
+    for (const point of result) {
+      expect(point.ingresos).toBe(0)
+      expect(point.costos).toBe(0)
+      expect(point.utilidad).toBe(0)
+    }
+  })
+
+  it('utilidad always equals ingresos minus costos', () => {
+    const projects: MockMonthlyProject[] = [
+      {
+        fecha_cotizacion: '2026-03-01',
+        line_items: [{ costo_proveedor: '100.00', margen: '0.50', cantidad: 2 }],
+      },
+    ]
+    const result = aggregateMonthlyFinancials(projects, new Date('2026-03-15'))
+    for (const point of result) {
+      expect(point.utilidad).toBeCloseTo(point.ingresos - point.costos, 2)
+    }
+  })
+
+  it('excludes project with fecha_cotizacion outside the 6-month window', () => {
+    const projects: MockMonthlyProject[] = [
+      {
+        fecha_cotizacion: '2025-08-01', // older than 6 months from 2026-03-15
+        line_items: [{ costo_proveedor: '500.00', margen: '0.50', cantidad: 1 }],
+      },
+    ]
+    const result = aggregateMonthlyFinancials(projects, new Date('2026-03-15'))
+    const totalIngresos = result.reduce((s, p) => s + p.ingresos, 0)
+    expect(totalIngresos).toBe(0)
+  })
+
+  it('correctly aggregates a project that falls within the 6-month window', () => {
+    const projects: MockMonthlyProject[] = [
+      {
+        fecha_cotizacion: '2026-02-10',
+        // costo=100, margen=0.5 → precio = 100/(1-0.5) = 200, subtotal=200*1=200
+        line_items: [{ costo_proveedor: '100.00', margen: '0.50', cantidad: 1 }],
+      },
+    ]
+    const result = aggregateMonthlyFinancials(projects, new Date('2026-03-15'))
+    const feb = result.find((p) => p.mes.startsWith('feb'))
+    expect(feb).toBeDefined()
+    // ingresos = subtotal = 200
+    expect(feb!.ingresos).toBeCloseTo(200, 2)
+    // costos = costo_proveedor * cantidad = 100
+    expect(feb!.costos).toBeCloseTo(100, 2)
+    // utilidad = 200 - 100 = 100
+    expect(feb!.utilidad).toBeCloseTo(100, 2)
+  })
+
+  it('months with no data have 0 values and correct mes label', () => {
+    const result = aggregateMonthlyFinancials([], new Date('2026-03-15'))
+    // All 6 months should have a mes label
+    for (const point of result) {
+      expect(point.mes).toBeTruthy()
+      expect(typeof point.mes).toBe('string')
+    }
+  })
+
+  it('applies Number() coercion to NUMERIC string values from Supabase', () => {
+    const projects: MockMonthlyProject[] = [
+      {
+        fecha_cotizacion: '2026-03-05',
+        line_items: [{ costo_proveedor: '200.00', margen: '0.50', cantidad: '2' as unknown as number }],
+      },
+    ]
+    const result = aggregateMonthlyFinancials(projects, new Date('2026-03-15'))
+    const mar = result.find((p) => p.mes.startsWith('mar'))
+    // ingresos: 200/(1-0.5)*2 = 800
+    expect(mar!.ingresos).toBeCloseTo(800, 2)
+  })
+})
+
+// ─── aggregateCashFlow ────────────────────────────────────────────────────────
+
+type MockClientPayment = {
+  fecha_pago: string | null
+  monto: number | string
+  tipo: string
+}
+
+type MockSupplierPaymentCashFlow = {
+  fecha_pago: string | null
+  monto: number | string
+}
+
+describe('aggregateCashFlow', () => {
+  const today = new Date('2026-03-05')
+
+  it('returns empty array when no payments provided', () => {
+    const result = aggregateCashFlow([], [], today)
+    expect(result).toHaveLength(0)
+  })
+
+  it('includes client payment within 30-day window as entrada', () => {
+    const clientPayments: MockClientPayment[] = [
+      { fecha_pago: '2026-03-10', monto: '5000.00', tipo: 'anticipo' },
+    ]
+    const result = aggregateCashFlow(clientPayments, [], today)
+    expect(result).toHaveLength(1)
+    expect(result[0].tipo).toBe('entrada')
+    expect(result[0].monto).toBeCloseTo(5000, 2)
+    expect(result[0].fecha).toBe('2026-03-10')
+  })
+
+  it('includes supplier payment within 30-day window as salida', () => {
+    const supplierPayments: MockSupplierPaymentCashFlow[] = [
+      { fecha_pago: '2026-03-15', monto: '2000.00' },
+    ]
+    const result = aggregateCashFlow([], supplierPayments, today)
+    expect(result).toHaveLength(1)
+    expect(result[0].tipo).toBe('salida')
+    expect(result[0].monto).toBeCloseTo(2000, 2)
+    expect(result[0].fecha).toBe('2026-03-15')
+  })
+
+  it('excludes client payment with fecha_pago before today', () => {
+    const clientPayments: MockClientPayment[] = [
+      { fecha_pago: '2026-03-04', monto: '1000.00', tipo: 'anticipo' },
+    ]
+    const result = aggregateCashFlow(clientPayments, [], today)
+    expect(result).toHaveLength(0)
+  })
+
+  it('excludes client payment with fecha_pago after today+30', () => {
+    const clientPayments: MockClientPayment[] = [
+      { fecha_pago: '2026-04-06', monto: '3000.00', tipo: 'anticipo' }, // April 6 > March 5 + 30
+    ]
+    const result = aggregateCashFlow(clientPayments, [], today)
+    expect(result).toHaveLength(0)
+  })
+
+  it('includes payment on today (inclusive lower bound)', () => {
+    const clientPayments: MockClientPayment[] = [
+      { fecha_pago: '2026-03-05', monto: '500.00', tipo: 'saldo' },
+    ]
+    const result = aggregateCashFlow(clientPayments, [], today)
+    expect(result).toHaveLength(1)
+  })
+
+  it('includes payment on today+30 (inclusive upper bound)', () => {
+    const clientPayments: MockClientPayment[] = [
+      { fecha_pago: '2026-04-04', monto: '500.00', tipo: 'saldo' }, // March 5 + 30 = April 4
+    ]
+    const result = aggregateCashFlow(clientPayments, [], today)
+    expect(result).toHaveLength(1)
+  })
+
+  it('returns entries sorted ascending by fecha', () => {
+    const clientPayments: MockClientPayment[] = [
+      { fecha_pago: '2026-03-20', monto: '1000.00', tipo: 'saldo' },
+      { fecha_pago: '2026-03-08', monto: '500.00', tipo: 'anticipo' },
+    ]
+    const supplierPayments: MockSupplierPaymentCashFlow[] = [
+      { fecha_pago: '2026-03-12', monto: '2000.00' },
+    ]
+    const result = aggregateCashFlow(clientPayments, supplierPayments, today)
+    expect(result).toHaveLength(3)
+    expect(result[0].fecha).toBe('2026-03-08')
+    expect(result[1].fecha).toBe('2026-03-12')
+    expect(result[2].fecha).toBe('2026-03-20')
+  })
+
+  it('excludes entries with null fecha_pago', () => {
+    const clientPayments: MockClientPayment[] = [
+      { fecha_pago: null, monto: '1000.00', tipo: 'anticipo' },
+    ]
+    const result = aggregateCashFlow(clientPayments, [], today)
+    expect(result).toHaveLength(0)
+  })
+
+  it('applies Number() coercion to monto strings', () => {
+    const clientPayments: MockClientPayment[] = [
+      { fecha_pago: '2026-03-10', monto: '9999.99', tipo: 'anticipo' },
+    ]
+    const result = aggregateCashFlow(clientPayments, [], today)
+    expect(typeof result[0].monto).toBe('number')
+    expect(result[0].monto).toBeCloseTo(9999.99, 2)
   })
 })
