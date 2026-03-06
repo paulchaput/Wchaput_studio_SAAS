@@ -3,21 +3,15 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
-import { calcSubtotal, calcTotal } from '@/lib/calculations'
+import { calcSubtotalFromPrecio, calcTotal } from '@/lib/calculations'
 
-// Zod schema — margen entered as integer percent (e.g. 50) and transformed to decimal (0.50) for DB storage.
-// DEFAULT_MARGEN = 0.50, so default percent = 50. Coercion: 50 → 0.50
 const lineItemSchema = z.object({
   project_id: z.string().uuid(),
   descripcion: z.string().min(1, 'La descripción es requerida'),
   referencia: z.string().optional(),
   dimensiones: z.string().optional(),
   cantidad: z.coerce.number().int().positive('La cantidad debe ser mayor a 0'),
-  proveedor_id: z.string().uuid().optional().nullable(),
-  costo_proveedor: z.coerce.number().nonnegative('El costo no puede ser negativo'),
-  // CRITICAL: User enters "50" for 50% — transform to 0.50 for DB storage.
-  // This is the ONLY place where percent→decimal conversion happens.
-  margen: z.coerce.number().min(0).max(99).transform(v => v / 100),
+  precio_venta: z.coerce.number().nonnegative('El precio de venta no puede ser negativo'),
 })
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>
@@ -25,13 +19,14 @@ type SupabaseClient = Awaited<ReturnType<typeof createClient>>
 async function syncGranTotal(supabase: SupabaseClient, projectId: string): Promise<void> {
   const { data: items } = await supabase
     .from('line_items')
-    .select('costo_proveedor, margen, cantidad')
+    .select('precio_venta, cantidad')
     .eq('project_id', projectId)
-  const subtotal = calcSubtotal((items ?? []).map(li => ({
-    costo_proveedor: Number(li.costo_proveedor),
-    margen: Number(li.margen),
-    cantidad: li.cantidad,
-  })))
+  const subtotal = calcSubtotalFromPrecio(
+    (items ?? []).map(li => ({
+      precio_venta: Number(li.precio_venta),
+      cantidad: li.cantidad,
+    }))
+  )
   const granTotal = calcTotal(subtotal)
   await supabase.from('projects').update({ gran_total: granTotal }).eq('id', projectId)
 }
@@ -50,7 +45,6 @@ export async function createLineItemAction(
     ...parsed.data,
     referencia: parsed.data.referencia || null,
     dimensiones: parsed.data.dimensiones || null,
-    proveedor_id: parsed.data.proveedor_id || null,
   }
 
   const supabase = await createClient()
@@ -78,7 +72,6 @@ export async function updateLineItemAction(
     ...parsed.data,
     referencia: parsed.data.referencia || null,
     dimensiones: parsed.data.dimensiones || null,
-    proveedor_id: parsed.data.proveedor_id || null,
   }
 
   const supabase = await createClient()
@@ -114,5 +107,77 @@ export async function deleteLineItemAction(
 
   await syncGranTotal(supabase, projectId)
   revalidatePath('/proyectos/' + projectId)
+  return {}
+}
+
+const lineItemCostSchema = z.object({
+  line_item_id: z.string().uuid(),
+  supplier_id: z.string().uuid(),
+  costo: z.coerce.number().nonnegative('El costo no puede ser negativo'),
+})
+
+export async function createLineItemCostAction(
+  formData: FormData
+): Promise<{ error?: string }> {
+  const parsed = lineItemCostSchema.safeParse(Object.fromEntries(formData))
+
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0].message }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.from('line_item_costs').insert({
+    line_item_id: parsed.data.line_item_id,
+    supplier_id: parsed.data.supplier_id,
+    costo: parsed.data.costo,
+  })
+
+  if (error) return { error: error.message }
+
+  // Fetch project_id via line_items
+  const { data: lineItem } = await supabase
+    .from('line_items')
+    .select('project_id')
+    .eq('id', parsed.data.line_item_id)
+    .single()
+
+  if (lineItem?.project_id) {
+    await syncGranTotal(supabase, lineItem.project_id)
+    revalidatePath('/proyectos/' + lineItem.project_id)
+  }
+
+  return {}
+}
+
+export async function deleteLineItemCostAction(
+  formData: FormData
+): Promise<{ error?: string }> {
+  const costRowId = formData.get('costRowId') as string
+  const lineItemId = formData.get('lineItemId') as string
+
+  if (!costRowId || !lineItemId) {
+    return { error: 'Datos requeridos para eliminar el costo' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('line_item_costs')
+    .delete()
+    .eq('id', costRowId)
+
+  if (error) return { error: error.message }
+
+  // Fetch project_id via line_items
+  const { data: lineItem } = await supabase
+    .from('line_items')
+    .select('project_id')
+    .eq('id', lineItemId)
+    .single()
+
+  if (lineItem?.project_id) {
+    await syncGranTotal(supabase, lineItem.project_id)
+    revalidatePath('/proyectos/' + lineItem.project_id)
+  }
+
   return {}
 }
