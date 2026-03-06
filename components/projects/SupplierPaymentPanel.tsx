@@ -27,9 +27,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-import type { PaymentSupplier } from '@/lib/types'
+import type { PaymentSupplier, LineItem } from '@/lib/types'
 import {
-  calcTotalCostoProyecto,
   calcTotalPagadoProveedor,
   calcSaldoProveedor,
 } from '@/lib/calculations'
@@ -51,12 +50,7 @@ type FormValues = z.infer<typeof formSchema>
 
 interface SupplierPaymentPanelProps {
   projectId: string
-  lineItems: Array<{
-    costo_proveedor: number
-    cantidad: number
-    proveedor_id: string | null
-    suppliers: { id: string; nombre: string } | null
-  }>
+  lineItems: LineItem[]
   payments: PaymentSupplier[]  // monto already coerced by getSupplierPayments()
   suppliers: Array<{ id: string; nombre: string }>  // full list fallback
 }
@@ -70,28 +64,36 @@ export function SupplierPaymentPanel({
   const [open, setOpen] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
 
-  // Derive suppliers that have line items on this project
+  // Derive unique suppliers from line_item_costs (multi-supplier model)
   const suppliersOnProjectMap = new Map<string, { id: string; nombre: string }>()
   for (const item of lineItems) {
-    if (item.proveedor_id && item.suppliers) {
-      suppliersOnProjectMap.set(item.proveedor_id, {
-        id: item.suppliers.id,
-        nombre: item.suppliers.nombre,
-      })
+    for (const cost of (item.line_item_costs ?? [])) {
+      if (cost.supplier_id && cost.suppliers) {
+        suppliersOnProjectMap.set(cost.supplier_id, {
+          id: cost.suppliers.id,
+          nombre: cost.suppliers.nombre,
+        })
+      }
     }
   }
+
   // Fall back to full suppliers list if no suppliers on line items
   const suppliersOnProject =
     suppliersOnProjectMap.size > 0
       ? Array.from(suppliersOnProjectMap.values())
       : suppliers
 
-  // Compute per-supplier breakdown
+  // Compute per-supplier breakdown using line_item_costs
   const supplierBreakdown = suppliersOnProject.map((supplier) => {
-    const supplierLineItems = lineItems.filter(
-      (item) => item.proveedor_id === supplier.id
-    )
-    const totalOwed = calcTotalCostoProyecto(supplierLineItems)
+    // Sum all costs for this supplier across all line items (cost x cantidad)
+    const totalOwed = lineItems.reduce((sum, li) => {
+      const supplierCosts = (li.line_item_costs ?? []).filter(
+        (c) => c.supplier_id === supplier.id
+      )
+      const costSum = supplierCosts.reduce((s, c) => s + Number(c.costo), 0)
+      return sum + costSum * li.cantidad
+    }, 0)
+
     const supplierPayments = payments.filter(
       (p) => p.supplier_id === supplier.id
     )

@@ -5,9 +5,10 @@ import { getProjectWithLineItems } from '@/lib/queries/projects'
 import { getSuppliers } from '@/lib/queries/suppliers'
 import { getClientPayments, getSupplierPayments } from '@/lib/queries/payments'
 import { getChecklistTasks } from '@/lib/queries/checklist'
-import { calcSubtotal, calcTotal } from '@/lib/calculations'
+import { calcSubtotalFromPrecio, calcTotal } from '@/lib/calculations'
 import { formatFecha } from '@/lib/formatters'
 import { createClient } from '@/lib/supabase/server'
+import type { LineItem } from '@/lib/types'
 
 import { ProjectStatusPipeline } from '@/components/projects/ProjectStatusPipeline'
 import { LineItemTable } from '@/components/projects/LineItemTable'
@@ -47,8 +48,10 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
 
   if (!project) notFound()
 
-  const lineItems = project.line_items ?? []
-  const granTotal = calcTotal(calcSubtotal(lineItems))
+  const lineItems = (project.line_items ?? []) as LineItem[]
+  const granTotal = calcTotal(calcSubtotalFromPrecio(
+    lineItems.map((li: LineItem) => ({ precio_venta: Number(li.precio_venta), cantidad: li.cantidad }))
+  ))
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
@@ -169,24 +172,26 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
             Descargar Cotizacion PDF
           </a>
           {isAdmin && (() => {
-            // Collect unique suppliers that have line items on this project
-            const supplierMap = new Map<string, string>() // id -> nombre
-            lineItems.forEach((li: { suppliers?: { id: string; nombre: string } | null }) => {
-              if (li.suppliers?.id && li.suppliers?.nombre) {
-                supplierMap.set(li.suppliers.id, li.suppliers.nombre)
-              }
-            })
-            if (supplierMap.size === 0) return null
+            // Derive unique suppliers from line_item_costs (multi-supplier model)
+            const uniqueSuppliers = lineItems
+              .flatMap((li: LineItem) => (li.line_item_costs ?? []))
+              .reduce((acc: Array<{ id: string; nombre: string }>, cost) => {
+                const s = cost.suppliers
+                if (s && !acc.find((x: { id: string }) => x.id === s.id)) acc.push({ id: s.id, nombre: s.nombre })
+                return acc
+              }, [] as Array<{ id: string; nombre: string }>)
+
+            if (uniqueSuppliers.length === 0) return null
             return (
               <>
-                {Array.from(supplierMap.entries()).map(([supplierId, supplierNombre]) => (
+                {uniqueSuppliers.map((s) => (
                   <a
-                    key={supplierId}
-                    href={`/proyectos/${id}/orden-compra?supplier_id=${supplierId}`}
+                    key={s.id}
+                    href={`/proyectos/${id}/orden-compra?supplier_id=${s.id}`}
                     className="inline-flex items-center gap-2 text-sm font-medium border px-3 py-1.5 rounded hover:bg-muted transition-colors"
                     download
                   >
-                    OC — {supplierNombre}
+                    OC — {s.nombre}
                   </a>
                 ))}
               </>
