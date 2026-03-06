@@ -95,18 +95,38 @@
 - [x] **UX-04**: Palette is monochrome with subtle grays; no color accent beyond black/white/gray
 - [x] **UX-05**: Every financial calculation is formula-driven — no hardcoded values anywhere in the codebase
 
-## v2 Requirements
+## v2.0 Requirements
+
+### Multi-Supplier Costing (COST)
+
+- [ ] **COST-01**: Admin can add multiple supplier cost rows to a single line item (supplier + cost amount each)
+- [ ] **COST-02**: Total cost of a line item auto-calculates as the sum of all its supplier cost rows
+- [ ] **COST-03**: Admin enters the sale price (precio de venta) directly on a line item
+- [ ] **COST-04**: Margin auto-calculates from sale price and total cost: `margen = (precioVenta - totalCosto) / precioVenta`
+- [ ] **COST-05**: Project totals (subtotal, IVA, gran total) recalculate correctly with the new cost model
+- [ ] **COST-06**: Purchase order PDF groups line items by supplier using the new per-line-item supplier costs
+
+### PDF Preview (PREV)
+
+- [ ] **PREV-01**: Admin can preview the quote PDF rendered in-app before downloading
+- [ ] **PREV-02**: Admin can preview the purchase order PDF rendered in-app before downloading
+- [ ] **PREV-03**: Preview shows the exact same output as the downloaded PDF
+
+### Email & Confirmations (EMAIL)
+
+- [ ] **EMAIL-01**: Admin can send the quote PDF to a client email address with a professional message
+- [ ] **EMAIL-02**: Admin can send a purchase order PDF to a supplier's email address
+- [ ] **EMAIL-03**: Admin can send a payment reminder to a client (pending deposit or final balance)
+- [ ] **EMAIL-04**: Every email send requires an in-app confirmation step showing a preview before sending
+- [ ] **EMAIL-05**: Admin sees success/error feedback after sending
+
+## v3+ Requirements
 
 ### Reportes
 
 - **REP-01**: CSV/Excel export for accountant (cash flow, payment history)
 - **REP-02**: Profit split summary card per partner (Paul 50% / Chris 50%)
 - **REP-03**: Per-project timeline / Gantt view
-
-### Notificaciones
-
-- **NOTF-01**: Email delivery of PDF quotes and purchase orders directly from the app
-- **NOTF-02**: Reminder alerts for overdue checklist tasks
 
 ### Integraciones
 
@@ -190,18 +210,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONT-04 | Phase 6 | Complete (06-03) |
 
 **Coverage:**
-- v1 requirements: 57 total
-- Mapped to phases: 57
-- Unmapped: 0 ✓
+- v1.0 requirements: 57 total — all complete ✓
+- v2.0 requirements: 14 total — roadmap pending
 
-**Phase distribution:**
-- Phase 1 (Fundacion): AUTH-01–05, UX-03, UX-04 = 7 requirements
-- Phase 2 (Proyectos y Partidas): PROJ-01–07, PART-01–09, UX-01, UX-02, UX-05 = 19 requirements
-- Phase 3 (Pagos y Proveedores): PAY-01–05, PROV-01–04 = 9 requirements
-- Phase 4 (Checklist de Produccion): CHEC-01–05 = 5 requirements
-- Phase 5 (Generacion de PDFs): QUOT-01–05, OC-01–03 = 8 requirements
-- Phase 6 (Dashboard y Vista Contador): DASH-01–05, CONT-01–04 = 9 requirements
+**v2.0 Phase distribution:** (to be filled by roadmapper)
 
 ---
 *Requirements defined: 2026-03-03*
-*Last updated: 2026-03-04 after 01-02 completion — AUTH-02, AUTH-03, AUTH-05, UX-03, UX-04 marked complete*
+*Last updated: 2026-03-06 — v2.0 requirements added (COST, PREV, EMAIL)*
