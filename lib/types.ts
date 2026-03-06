@@ -33,6 +33,15 @@ export interface Supplier {
   created_at: string
 }
 
+export interface LineItemCost {
+  id: string
+  line_item_id: string
+  supplier_id: string
+  costo: number  // NUMERIC(12,2) — ADMIN ONLY
+  created_at: string
+  suppliers?: { id: string; nombre: string } | null
+}
+
 export interface LineItem {
   id: string
   project_id: string
@@ -40,10 +49,9 @@ export interface LineItem {
   referencia: string | null
   dimensiones: string | null
   cantidad: number
-  proveedor_id: string | null
-  costo_proveedor: number   // NUMERIC(12,2) — ADMIN ONLY
-  margen: number            // NUMERIC(5,4) — ADMIN ONLY, e.g. 0.50 = 50%
+  precio_venta: number  // NUMERIC(12,2) — ADMIN ONLY, direct user input
   created_at: string
+  line_item_costs?: LineItemCost[]
 }
 
 export interface PaymentClient {
