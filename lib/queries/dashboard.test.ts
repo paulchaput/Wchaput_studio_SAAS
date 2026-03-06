@@ -11,9 +11,9 @@ import { PIPELINE_STAGES } from '@/lib/calculations'
 // ─── Mock types ──────────────────────────────────────────────────────────────
 
 type MockLineItem = {
-  costo_proveedor: number | string
-  margen: number | string
+  precio_venta: number | string
   cantidad: number
+  line_item_costs: Array<{ costo: number | string }>
 }
 
 type MockPayment = {
@@ -29,12 +29,16 @@ type MockProject = {
 }
 
 // ─── Test fixtures ────────────────────────────────────────────────────────────
+// Old model: costo_proveedor: '100.00', margen: '0.50', cantidad: 2
+//   → precio = 100/(1-0.5) = 200 each, subtotal = 400, granTotal = 464, totalCosto = 100*2 = 200
+// New model: precio_venta = 200 (direct), line_item_costs = [{costo: 100}], cantidad: 2
+//   → subtotal = 200*2 = 400, granTotal = 464, totalCosto = 100 (single cost row) * 2 quantities = 200
 
 const activeProject: MockProject = {
   id: 'proj-1',
   status: 'Prospecto',
   line_items: [
-    { costo_proveedor: '100.00', margen: '0.50', cantidad: 2 }, // precio = 200 each, total = 400
+    { precio_venta: '200.00', cantidad: 2, line_item_costs: [{ costo: '100.00' }] },
   ],
   payments_client: [{ monto: '100.00' }],
   payments_supplier: [{ monto: '50.00' }],
@@ -44,7 +48,7 @@ const cerradoProject: MockProject = {
   id: 'proj-2',
   status: 'Cerrado',
   line_items: [
-    { costo_proveedor: '200.00', margen: '0.50', cantidad: 1 },
+    { precio_venta: '400.00', cantidad: 1, line_item_costs: [{ costo: '200.00' }] },
   ],
   payments_client: [{ monto: '464.00' }],
   payments_supplier: [{ monto: '200.00' }],
@@ -54,7 +58,7 @@ const anotherActiveProject: MockProject = {
   id: 'proj-3',
   status: 'En Producción',
   line_items: [
-    { costo_proveedor: '50.00', margen: '0.50', cantidad: 4 }, // precio = 100 each, total = 400
+    { precio_venta: '100.00', cantidad: 4, line_item_costs: [{ costo: '50.00' }] },
   ],
   payments_client: [{ monto: '0.00' }],
   payments_supplier: [{ monto: '0.00' }],
@@ -73,16 +77,16 @@ describe('aggregateDashboardKpis', () => {
     expect(result.activeProjectCount).toBe(0)
   })
 
-  it('sums pipelineValue from non-Cerrado projects only using calcTotal(calcSubtotal)', () => {
-    // activeProject: calcSubtotal = 400 (200*2), calcTotal = 400 * 1.16 = 464
+  it('sums pipelineValue from non-Cerrado projects only using calcTotal(calcSubtotalFromPrecio)', () => {
+    // activeProject: subtotal = 200*2 = 400, granTotal = 400 * 1.16 = 464
     // cerradoProject should be excluded
     const result = aggregateDashboardKpis([activeProject, cerradoProject])
     expect(result.pipelineValue).toBeCloseTo(464, 2)
   })
 
   it('sums pipelineValue from multiple active projects', () => {
-    // activeProject: gran_total = 464
-    // anotherActiveProject: calcSubtotal = 400 (100*4), calcTotal = 464
+    // activeProject: granTotal = 464
+    // anotherActiveProject: subtotal = 100*4 = 400, granTotal = 464
     const result = aggregateDashboardKpis([activeProject, anotherActiveProject, cerradoProject])
     expect(result.pipelineValue).toBeCloseTo(928, 2)
   })
@@ -94,7 +98,7 @@ describe('aggregateDashboardKpis', () => {
   })
 
   it('computes totalPendingProveedor = totalCosto - paidProveedor for active projects', () => {
-    // activeProject: totalCosto = 100 * 2 = 200, paid = 50 → pending = 150
+    // activeProject: line_item_costs[0].costo = 100, cantidad = 2 → totalCosto = 100*2 = 200, paid = 50 → pending = 150
     const result = aggregateDashboardKpis([activeProject])
     expect(result.totalPendingProveedor).toBeCloseTo(150, 2)
   })
@@ -103,16 +107,17 @@ describe('aggregateDashboardKpis', () => {
     const projectWithStrings: MockProject = {
       id: 'proj-str',
       status: 'Cotizado',
-      line_items: [{ costo_proveedor: '100.00', margen: '0.50', cantidad: 1 }],
+      // precio_venta = 200 (from old costo=100, margen=0.5), line_item_costs.costo = 100
+      line_items: [{ precio_venta: '200.00', cantidad: 1, line_item_costs: [{ costo: '100.00' }] }],
       payments_client: [{ monto: '116.00' }],
       payments_supplier: [{ monto: '50.00' }],
     }
     const result = aggregateDashboardKpis([projectWithStrings])
-    // granTotal = calcTotal(calcSubtotal) = 200 * 1.16 = 232
+    // granTotal = 200 * 1.16 = 232
     expect(result.pipelineValue).toBeCloseTo(232, 2)
     // totalPendingCliente = 232 - 116 = 116
     expect(result.totalPendingCliente).toBeCloseTo(116, 2)
-    // totalPendingProveedor = 100 - 50 = 50
+    // totalPendingProveedor = 100*1 - 50 = 50
     expect(result.totalPendingProveedor).toBeCloseTo(50, 2)
   })
 
@@ -167,12 +172,16 @@ describe('aggregatePipelineSummary', () => {
 })
 
 // ─── Mock data for supplier debt ─────────────────────────────────────────────
+// New model: aggregateSupplierDebt receives line_item_costs rows, not line_items rows.
+// Each cost row has: costo, supplier_id, line_items (with project), suppliers
 
-type MockSupplierLineItem = {
-  costo_proveedor: number | string
-  cantidad: number
-  proveedor_id: string
-  projects: { status: string } | Array<{ status: string }>
+type MockSupplierCost = {
+  costo: number | string
+  supplier_id: string
+  line_items: {
+    project_id: string
+    projects: { status: string } | Array<{ status: string }>
+  } | null
   suppliers: { id: string; nombre: string } | Array<{ id: string; nombre: string }>
 }
 
@@ -184,123 +193,117 @@ type MockSupplierPayment = {
 // ─── aggregateSupplierDebt ────────────────────────────────────────────────────
 
 describe('aggregateSupplierDebt', () => {
-  it('routes Innovika line items to the Innovika bucket', () => {
-    const lineItems: MockSupplierLineItem[] = [
+  it('routes Innovika cost rows to the Innovika bucket', () => {
+    const costs: MockSupplierCost[] = [
       {
-        costo_proveedor: '100.00',
-        cantidad: 2,
-        proveedor_id: 'sup-innovika',
-        projects: { status: 'Prospecto' },
+        costo: '100.00',
+        supplier_id: 'sup-innovika',
+        line_items: { project_id: 'proj-1', projects: { status: 'Prospecto' } },
         suppliers: { id: 'sup-innovika', nombre: 'Innovika' },
       },
     ]
     const payments: MockSupplierPayment[] = []
-    const result = aggregateSupplierDebt(lineItems, payments)
-    expect(result.Innovika).toBeCloseTo(200, 2)
+    const result = aggregateSupplierDebt(costs, payments)
+    // costo = 100 (single cost row, no cantidad multiplication in this new model)
+    expect(result.Innovika).toBeCloseTo(100, 2)
     expect(result['El Roble']).toBe(0)
     expect(result.Otros).toBe(0)
   })
 
-  it('routes El Roble line items to the El Roble bucket', () => {
-    const lineItems: MockSupplierLineItem[] = [
+  it('routes El Roble cost rows to the El Roble bucket', () => {
+    const costs: MockSupplierCost[] = [
       {
-        costo_proveedor: '50.00',
-        cantidad: 3,
-        proveedor_id: 'sup-roble',
-        projects: { status: 'En Producción' },
+        costo: '150.00',
+        supplier_id: 'sup-roble',
+        line_items: { project_id: 'proj-1', projects: { status: 'En Producción' } },
         suppliers: { id: 'sup-roble', nombre: 'El Roble' },
       },
     ]
     const payments: MockSupplierPayment[] = []
-    const result = aggregateSupplierDebt(lineItems, payments)
+    const result = aggregateSupplierDebt(costs, payments)
     expect(result['El Roble']).toBeCloseTo(150, 2)
     expect(result.Innovika).toBe(0)
     expect(result.Otros).toBe(0)
   })
 
   it('routes unknown suppliers to the Otros bucket', () => {
-    const lineItems: MockSupplierLineItem[] = [
+    const costs: MockSupplierCost[] = [
       {
-        costo_proveedor: '75.00',
-        cantidad: 2,
-        proveedor_id: 'sup-other',
-        projects: { status: 'Cotizado' },
+        costo: '150.00',
+        supplier_id: 'sup-other',
+        line_items: { project_id: 'proj-1', projects: { status: 'Cotizado' } },
         suppliers: { id: 'sup-other', nombre: 'Aceros SA' },
       },
     ]
     const payments: MockSupplierPayment[] = []
-    const result = aggregateSupplierDebt(lineItems, payments)
+    const result = aggregateSupplierDebt(costs, payments)
     expect(result.Otros).toBeCloseTo(150, 2)
     expect(result.Innovika).toBe(0)
     expect(result['El Roble']).toBe(0)
   })
 
   it('excludes Cerrado projects from supplier debt', () => {
-    const lineItems: MockSupplierLineItem[] = [
+    const costs: MockSupplierCost[] = [
       {
-        costo_proveedor: '100.00',
-        cantidad: 1,
-        proveedor_id: 'sup-innovika',
-        projects: { status: 'Cerrado' },
+        costo: '100.00',
+        supplier_id: 'sup-innovika',
+        line_items: { project_id: 'proj-1', projects: { status: 'Cerrado' } },
         suppliers: { id: 'sup-innovika', nombre: 'Innovika' },
       },
     ]
     const payments: MockSupplierPayment[] = []
-    const result = aggregateSupplierDebt(lineItems, payments)
+    const result = aggregateSupplierDebt(costs, payments)
     expect(result.Innovika).toBe(0)
   })
 
   it('subtracts payments from owed amounts', () => {
-    const lineItems: MockSupplierLineItem[] = [
+    const costs: MockSupplierCost[] = [
       {
-        costo_proveedor: '200.00',
-        cantidad: 1,
-        proveedor_id: 'sup-innovika',
-        projects: { status: 'Prospecto' },
+        costo: '200.00',
+        supplier_id: 'sup-innovika',
+        line_items: { project_id: 'proj-1', projects: { status: 'Prospecto' } },
         suppliers: { id: 'sup-innovika', nombre: 'Innovika' },
       },
     ]
     const payments: MockSupplierPayment[] = [
       { supplier_id: 'sup-innovika', monto: '75.00' },
     ]
-    const result = aggregateSupplierDebt(lineItems, payments)
+    const result = aggregateSupplierDebt(costs, payments)
     expect(result.Innovika).toBeCloseTo(125, 2)
   })
 
   it('handles suppliers as array (Supabase joined relation pattern)', () => {
-    const lineItems: MockSupplierLineItem[] = [
+    const costs: MockSupplierCost[] = [
       {
-        costo_proveedor: '100.00',
-        cantidad: 1,
-        proveedor_id: 'sup-roble',
-        projects: [{ status: 'Cotizado' }],
+        costo: '100.00',
+        supplier_id: 'sup-roble',
+        line_items: { project_id: 'proj-1', projects: [{ status: 'Cotizado' }] },
         suppliers: [{ id: 'sup-roble', nombre: 'El Roble' }],
       },
     ]
     const payments: MockSupplierPayment[] = []
-    const result = aggregateSupplierDebt(lineItems, payments)
+    const result = aggregateSupplierDebt(costs, payments)
     expect(result['El Roble']).toBeCloseTo(100, 2)
   })
 
-  it('applies Number() coercion for monto and costo_proveedor strings', () => {
-    const lineItems: MockSupplierLineItem[] = [
+  it('applies Number() coercion for monto and costo strings', () => {
+    const costs: MockSupplierCost[] = [
       {
-        costo_proveedor: '100.00',
-        cantidad: 2,
-        proveedor_id: 'sup-innovika',
-        projects: { status: 'Prospecto' },
+        costo: '200.00',
+        supplier_id: 'sup-innovika',
+        line_items: { project_id: 'proj-1', projects: { status: 'Prospecto' } },
         suppliers: { id: 'sup-innovika', nombre: 'Innovika' },
       },
     ]
     const payments: MockSupplierPayment[] = [
       { supplier_id: 'sup-innovika', monto: '50.00' },
     ]
-    const result = aggregateSupplierDebt(lineItems, payments)
+    const result = aggregateSupplierDebt(costs, payments)
     // owed = 200, paid = 50, outstanding = 150
     expect(result.Innovika).toBeCloseTo(150, 2)
   })
 
-  it('returns zeros when no line items', () => {
+  it('returns zeros when no cost rows', () => {
     const result = aggregateSupplierDebt([], [])
     expect(result.Innovika).toBe(0)
     expect(result['El Roble']).toBe(0)
@@ -312,7 +315,11 @@ describe('aggregateSupplierDebt', () => {
 
 type MockMonthlyProject = {
   fecha_cotizacion: string
-  line_items: Array<{ costo_proveedor: number | string; margen: number | string; cantidad: number }>
+  line_items: Array<{
+    precio_venta: number | string
+    cantidad: number
+    line_item_costs: Array<{ costo: number | string }>
+  }>
 }
 
 describe('aggregateMonthlyFinancials', () => {
@@ -334,7 +341,8 @@ describe('aggregateMonthlyFinancials', () => {
     const projects: MockMonthlyProject[] = [
       {
         fecha_cotizacion: '2026-03-01',
-        line_items: [{ costo_proveedor: '100.00', margen: '0.50', cantidad: 2 }],
+        // precio_venta=200 (direct), cantidad=2, line_item_costs=[{costo:100}]
+        line_items: [{ precio_venta: '200.00', cantidad: 2, line_item_costs: [{ costo: '100.00' }] }],
       },
     ]
     const result = aggregateMonthlyFinancials(projects, new Date('2026-03-15'))
@@ -347,7 +355,7 @@ describe('aggregateMonthlyFinancials', () => {
     const projects: MockMonthlyProject[] = [
       {
         fecha_cotizacion: '2025-08-01', // older than 6 months from 2026-03-15
-        line_items: [{ costo_proveedor: '500.00', margen: '0.50', cantidad: 1 }],
+        line_items: [{ precio_venta: '1000.00', cantidad: 1, line_item_costs: [{ costo: '500.00' }] }],
       },
     ]
     const result = aggregateMonthlyFinancials(projects, new Date('2026-03-15'))
@@ -359,16 +367,16 @@ describe('aggregateMonthlyFinancials', () => {
     const projects: MockMonthlyProject[] = [
       {
         fecha_cotizacion: '2026-02-10',
-        // costo=100, margen=0.5 → precio = 100/(1-0.5) = 200, subtotal=200*1=200
-        line_items: [{ costo_proveedor: '100.00', margen: '0.50', cantidad: 1 }],
+        // precio_venta=200 (direct admin input), cantidad=1, costo=100
+        line_items: [{ precio_venta: '200.00', cantidad: 1, line_item_costs: [{ costo: '100.00' }] }],
       },
     ]
     const result = aggregateMonthlyFinancials(projects, new Date('2026-03-15'))
     const feb = result.find((p) => p.mes.startsWith('feb'))
     expect(feb).toBeDefined()
-    // ingresos = subtotal = 200
+    // ingresos = precio_venta * cantidad = 200 * 1 = 200
     expect(feb!.ingresos).toBeCloseTo(200, 2)
-    // costos = costo_proveedor * cantidad = 100
+    // costos = costo * cantidad = 100 * 1 = 100
     expect(feb!.costos).toBeCloseTo(100, 2)
     // utilidad = 200 - 100 = 100
     expect(feb!.utilidad).toBeCloseTo(100, 2)
@@ -387,13 +395,16 @@ describe('aggregateMonthlyFinancials', () => {
     const projects: MockMonthlyProject[] = [
       {
         fecha_cotizacion: '2026-03-05',
-        line_items: [{ costo_proveedor: '200.00', margen: '0.50', cantidad: '2' as unknown as number }],
+        // precio_venta=400, cantidad=2, line_item_costs=[{costo:200}]
+        line_items: [{ precio_venta: '400.00', cantidad: 2 as unknown as number, line_item_costs: [{ costo: '200.00' }] }],
       },
     ]
     const result = aggregateMonthlyFinancials(projects, new Date('2026-03-15'))
     const mar = result.find((p) => p.mes.startsWith('mar'))
-    // ingresos: 200/(1-0.5)*2 = 800
+    // ingresos: 400 * 2 = 800
     expect(mar!.ingresos).toBeCloseTo(800, 2)
+    // costos: 200 * 2 = 400
+    expect(mar!.costos).toBeCloseTo(400, 2)
   })
 })
 

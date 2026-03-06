@@ -25,19 +25,23 @@ export async function getSuppliersAll(): Promise<Supplier[]> {
 }
 
 // Supplier detail — TWO batch queries, no N+1 per project (PROV-03)
+// Batch 1 joins through line_item_costs instead of proveedor_id
 export async function getSupplierWithDetails(supplierId: string) {
   const supabase = await createClient()
 
-  // Batch 1: all line items for this supplier across all projects
-  const { data: lineItems, error: liError } = await supabase
-    .from('line_items')
+  // Batch 1: all line_item_costs for this supplier, joined to line_items and projects
+  const { data: costs, error: costsError } = await supabase
+    .from('line_item_costs')
     .select(`
-      id, costo_proveedor, cantidad, project_id,
-      projects ( id, nombre, cliente_nombre, status )
+      line_item_id, costo,
+      line_items (
+        id, cantidad, project_id,
+        projects ( id, nombre, cliente_nombre, status )
+      )
     `)
-    .eq('proveedor_id', supplierId)
+    .eq('supplier_id', supplierId)
 
-  if (liError) throw liError
+  if (costsError) throw costsError
 
   // Batch 2: all supplier payments for this supplier
   const { data: payments, error: pyError } = await supabase
@@ -47,8 +51,21 @@ export async function getSupplierWithDetails(supplierId: string) {
 
   if (pyError) throw pyError
 
+  // Flatten cost rows into line item shape compatible with supplier detail page
+  const lineItems = (costs ?? []).map(c => {
+    const li = Array.isArray(c.line_items) ? c.line_items[0] : c.line_items
+    const project = li ? (Array.isArray(li.projects) ? li.projects[0] : li.projects) : null
+    return {
+      id: c.line_item_id,
+      costo_proveedor: Number(c.costo),
+      cantidad: li?.cantidad ?? 1,
+      project_id: li?.project_id ?? null,
+      projects: project ?? null,
+    }
+  })
+
   return {
-    lineItems: lineItems ?? [],
+    lineItems,
     payments: payments ?? [],
   }
 }

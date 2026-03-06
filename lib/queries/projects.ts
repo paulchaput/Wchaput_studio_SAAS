@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { calcSubtotal, calcTotal, calcPrecioVenta, calcTotalVenta, calcIVA, calcAnticipo, calcSaldo, calcTotalCosto } from '@/lib/calculations'
+import { calcSubtotalFromPrecio, calcTotal, calcTotalCosto, calcIVA, calcAnticipo, calcSaldo } from '@/lib/calculations'
 import type { QuoteProjectData, QuoteLineItem } from '@/lib/pdf/CotizacionTemplate'
 import type { OcLineItem, OcProjectData } from '@/lib/pdf/OrdenCompraTemplate'
 
@@ -8,15 +8,15 @@ export async function getProjects() {
   const { data, error } = await supabase
     .from('projects')
     .select(`id, nombre, cliente_nombre, numero_cotizacion, fecha_cotizacion, status, created_at,
-             line_items(costo_proveedor, margen, cantidad)`)
+             line_items(precio_venta, cantidad)`)
     .order('created_at', { ascending: false })
 
   if (error) throw error
 
   return (data ?? []).map(p => ({
     ...p,
-    subtotal: calcSubtotal(p.line_items ?? []),
-    gran_total: calcTotal(calcSubtotal(p.line_items ?? [])),
+    subtotal: calcSubtotalFromPrecio(p.line_items ?? []),
+    gran_total: calcTotal(calcSubtotalFromPrecio(p.line_items ?? [])),
   }))
 }
 
@@ -40,8 +40,11 @@ export async function getProjectWithLineItems(id: string) {
       *,
       line_items (
         id, descripcion, referencia, dimensiones,
-        cantidad, costo_proveedor, margen, proveedor_id, created_at,
-        suppliers ( id, nombre )
+        cantidad, precio_venta, created_at,
+        line_item_costs (
+          id, costo, supplier_id,
+          suppliers ( id, nombre )
+        )
       )
     `)
     .eq('id', id)
@@ -60,7 +63,7 @@ export async function getProjectForQuote(id: string): Promise<QuoteProjectData |
       fecha_cotizacion, salesperson,
       line_items (
         id, descripcion, referencia, cantidad,
-        costo_proveedor, margen
+        precio_venta
       )
     `)
     .eq('id', id)
@@ -68,22 +71,18 @@ export async function getProjectForQuote(id: string): Promise<QuoteProjectData |
 
   if (error || !data) return null
 
-  // Map to safe QuoteLineItem — costo_proveedor and margen are used only for calculation, NOT passed forward
-  const lineItems: QuoteLineItem[] = (data.line_items ?? []).map(li => {
-    const costo = Number(li.costo_proveedor)
-    const margen = Number(li.margen)
-    const precioVenta = calcPrecioVenta(costo, margen)
-    const totalVenta = calcTotalVenta(precioVenta, li.cantidad)
-    return {
-      descripcion: li.descripcion,
-      referencia: li.referencia,
-      cantidad: li.cantidad,
-      precioVenta,
-      totalVenta,
-    }
-  })
+  // Map to QuoteLineItem using precio_venta directly (no formula calculation)
+  const lineItems: QuoteLineItem[] = (data.line_items ?? []).map(li => ({
+    descripcion: li.descripcion,
+    referencia: li.referencia,
+    cantidad: li.cantidad,
+    precioVenta: Number(li.precio_venta),
+    totalVenta: Number(li.precio_venta) * li.cantidad,
+  }))
 
-  const subtotal = calcSubtotal(data.line_items ?? [])
+  const subtotal = calcSubtotalFromPrecio(
+    (data.line_items ?? []).map(li => ({ precio_venta: Number(li.precio_venta), cantidad: li.cantidad }))
+  )
   const iva = calcIVA(subtotal)
   const granTotal = calcTotal(subtotal)
 
@@ -118,21 +117,48 @@ export async function getProjectLineItemsBySupplier(
 
   if (projError || !project) return null
 
-  // Fetch supplier-filtered line items with supplier contact info
-  const { data: items, error: itemsError } = await supabase
+  // Step 1: Fetch all line_items for the project
+  const { data: allItems, error: allItemsError } = await supabase
     .from('line_items')
-    .select(`
-      id, descripcion, referencia, dimensiones,
-      cantidad, costo_proveedor,
-      suppliers ( id, nombre, contacto, email, telefono )
-    `)
+    .select('id, descripcion, referencia, dimensiones, cantidad, precio_venta')
     .eq('project_id', projectId)
-    .eq('proveedor_id', supplierId)
 
-  if (itemsError) return null
+  if (allItemsError) return null
 
-  const lineItems: OcLineItem[] = (items ?? []).map(li => {
-    const costo = Number(li.costo_proveedor)
+  // Step 2: Fetch line_item_costs filtered by supplierId for those line item IDs
+  const lineItemIds = (allItems ?? []).map(li => li.id)
+  const { data: costs, error: costsError } = lineItemIds.length > 0
+    ? await supabase
+        .from('line_item_costs')
+        .select('line_item_id, costo')
+        .eq('supplier_id', supplierId)
+        .in('line_item_id', lineItemIds)
+    : { data: [], error: null }
+
+  if (costsError) return null
+
+  // Build cost lookup map
+  const costByLineItem: Record<string, number> = {}
+  for (const c of (costs ?? [])) {
+    costByLineItem[c.line_item_id] = Number(c.costo)
+  }
+
+  // Step 3: Filter to only line items with a matching cost row
+  const filteredItems = (allItems ?? []).filter(li => costByLineItem[li.id] !== undefined)
+
+  if (filteredItems.length === 0) return null
+
+  // Step 4: Fetch supplier info
+  const { data: supplierData, error: supplierError } = await supabase
+    .from('suppliers')
+    .select('id, nombre, contacto, email, telefono')
+    .eq('id', supplierId)
+    .single()
+
+  if (supplierError || !supplierData) return null
+
+  const lineItems: OcLineItem[] = filteredItems.map(li => {
+    const costo = costByLineItem[li.id]
     return {
       descripcion: li.descripcion,
       referencia: li.referencia,
@@ -143,21 +169,16 @@ export async function getProjectLineItemsBySupplier(
     }
   })
 
-  const rawSupplier = items?.[0]?.suppliers
-  // Supabase types joined relations as arrays; normalize to single object
-  const supplierRow = Array.isArray(rawSupplier) ? rawSupplier[0] : rawSupplier
-  if (!supplierRow) return null
-
   const granTotalCosto = lineItems.reduce((sum, li) => sum + li.totalCosto, 0)
 
   return {
     projectId,
     projectNombre: project.nombre,
     supplier: {
-      nombre: supplierRow.nombre,
-      contacto: supplierRow.contacto,
-      email: supplierRow.email,
-      telefono: supplierRow.telefono,
+      nombre: supplierData.nombre,
+      contacto: supplierData.contacto,
+      email: supplierData.email,
+      telefono: supplierData.telefono,
     },
     fecha: new Date().toISOString().split('T')[0],
     lineItems,

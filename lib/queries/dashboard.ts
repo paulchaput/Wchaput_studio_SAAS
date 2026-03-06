@@ -1,9 +1,9 @@
 // lib/queries/dashboard.ts — Dashboard aggregation queries and pure helpers
 
 import {
-  calcSubtotal,
+  calcSubtotalFromPrecio,
   calcTotal,
-  calcTotalCostoProyecto,
+  calcTotalCostoFromCosts,
   calcTotalPagadoCliente,
   calcTotalPagadoProveedor,
   PIPELINE_STAGES,
@@ -14,9 +14,9 @@ import 'server-only'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface LineItemLike {
-  costo_proveedor: number | string
-  margen: number | string
+  precio_venta: number | string
   cantidad: number
+  line_item_costs: Array<{ costo: number | string }>
 }
 
 interface PaymentLike {
@@ -31,11 +31,16 @@ interface ProjectLike {
   payments_supplier: PaymentLike[]
 }
 
-interface SupplierLineItemLike {
-  costo_proveedor: number | string
-  cantidad: number
-  proveedor_id: string | null
-  projects: { status: string } | Array<{ status: string }> | null
+interface SupplierCostLike {
+  costo: number | string
+  supplier_id: string | null
+  line_items: {
+    project_id: string
+    projects: { status: string } | Array<{ status: string }> | null
+  } | Array<{
+    project_id: string
+    projects: { status: string } | Array<{ status: string }> | null
+  }> | null
   suppliers: { id: string; nombre: string } | Array<{ id: string; nombre: string }> | null
 }
 
@@ -74,9 +79,9 @@ export function aggregateDashboardKpis(projects: ProjectLike[]): DashboardKpis {
 
   for (const p of active) {
     const normalizedLineItems = (p.line_items ?? []).map((li) => ({
-      costo_proveedor: Number(li.costo_proveedor),
-      margen: Number(li.margen),
+      precio_venta: Number(li.precio_venta),
       cantidad: li.cantidad,
+      line_item_costs: (li.line_item_costs ?? []).map(c => ({ costo: Number(c.costo) })),
     }))
     const normalizedClientPayments = (p.payments_client ?? []).map((pay) => ({
       monto: Number(pay.monto),
@@ -85,9 +90,12 @@ export function aggregateDashboardKpis(projects: ProjectLike[]): DashboardKpis {
       monto: Number(pay.monto),
     }))
 
-    const subtotal = calcSubtotal(normalizedLineItems)
+    const subtotal = calcSubtotalFromPrecio(normalizedLineItems)
     const granTotal = calcTotal(subtotal)
-    const totalCosto = calcTotalCostoProyecto(normalizedLineItems)
+    // Total cost = sum of all line_item_costs per line item
+    const totalCosto = normalizedLineItems.reduce((sum, li) => {
+      return sum + calcTotalCostoFromCosts(li.line_item_costs) * li.cantidad
+    }, 0)
     const pagadoCliente = calcTotalPagadoCliente(normalizedClientPayments)
     const pagadoProveedor = calcTotalPagadoProveedor(normalizedSupplierPayments)
 
@@ -129,31 +137,35 @@ export function aggregatePipelineSummary(
 
 /**
  * Buckets outstanding supplier debt into Innovika, El Roble, and Otros.
- * Excludes Cerrado projects. Applies Number() coercion for NUMERIC strings.
+ * Excludes Cerrado projects. Reads from line_item_costs rows (not costo_proveedor).
  * Exported for unit testing.
  */
 export function aggregateSupplierDebt(
-  lineItems: SupplierLineItemLike[],
+  costs: SupplierCostLike[],
   supplierPayments: SupplierPaymentLike[]
 ): SupplierDebtResult {
   // Build owed map keyed by supplier_id
   const owedBySupplier: Record<string, { nombre: string; owed: number; paid: number }> = {}
 
-  for (const li of lineItems) {
-    // Normalize projects relation (may be array or object from Supabase)
+  for (const c of costs) {
+    // Normalize line_items relation
+    const li = Array.isArray(c.line_items) ? c.line_items[0] : c.line_items
+    if (!li) continue
+
+    // Normalize projects relation
     const proj = Array.isArray(li.projects) ? li.projects[0] : li.projects
     if (!proj || proj.status === 'Cerrado') continue
 
-    const supplierId = li.proveedor_id ?? 'unknown'
+    const supplierId = c.supplier_id ?? 'unknown'
 
-    // Normalize suppliers relation (may be array or object from Supabase)
-    const supplierRaw = Array.isArray(li.suppliers) ? li.suppliers[0] : li.suppliers
+    // Normalize suppliers relation
+    const supplierRaw = Array.isArray(c.suppliers) ? c.suppliers[0] : c.suppliers
     const nombre = supplierRaw?.nombre ?? 'Sin proveedor'
 
     if (!owedBySupplier[supplierId]) {
       owedBySupplier[supplierId] = { nombre, owed: 0, paid: 0 }
     }
-    owedBySupplier[supplierId].owed += Number(li.costo_proveedor) * li.cantidad
+    owedBySupplier[supplierId].owed += Number(c.costo)
   }
 
   // Accumulate payments by supplier
@@ -198,7 +210,11 @@ export interface CashFlowEntry {
 
 interface MonthlyProjectLike {
   fecha_cotizacion: string
-  line_items: Array<{ costo_proveedor: number | string; margen: number | string; cantidad: number }>
+  line_items: Array<{
+    precio_venta: number | string
+    cantidad: number
+    line_item_costs: Array<{ costo: number | string }>
+  }>
 }
 
 interface ClientPaymentLike {
@@ -244,13 +260,13 @@ export function aggregateMonthlyFinancials(
     if (!buckets[monthKey]) continue // outside 6-month window
 
     for (const li of project.line_items) {
-      const costo = Number(li.costo_proveedor)
-      const margen = Number(li.margen)
+      const precioVenta = Number(li.precio_venta)
       const cantidad = Number(li.cantidad)
-      // precio unitario = costo / (1 - margen) [gross margin formula]
-      const precio = margen < 1 ? costo / (1 - margen) : 0
-      buckets[monthKey].ingresos += precio * cantidad
-      buckets[monthKey].costos += costo * cantidad
+      // ingresos = precio_venta × cantidad (direct admin input)
+      buckets[monthKey].ingresos += precioVenta * cantidad
+      // costos = sum of all line_item_costs.costo
+      const totalCosto = (li.line_item_costs ?? []).reduce((sum, c) => sum + Number(c.costo), 0)
+      buckets[monthKey].costos += totalCosto * cantidad
     }
   }
 
@@ -325,15 +341,15 @@ export function aggregateCashFlow(
 // ─── Server query: getDashboardKpis ──────────────────────────────────────────
 
 /**
- * Fetches all projects with line_items and payments, then delegates aggregation
- * to the pure aggregateDashboardKpis helper.
+ * Fetches all projects with line_items (including line_item_costs) and payments,
+ * then delegates aggregation to the pure aggregateDashboardKpis helper.
  */
 export async function getDashboardKpis(): Promise<DashboardKpis> {
   const supabase = await createClient()
 
   const { data: projects } = await supabase.from('projects').select(`
     id, status,
-    line_items ( costo_proveedor, margen, cantidad ),
+    line_items ( precio_venta, cantidad, line_item_costs ( costo ) ),
     payments_client ( monto ),
     payments_supplier ( monto )
   `)
@@ -357,23 +373,23 @@ export async function getPipelineSummary(): Promise<PipelineSummaryCounts> {
 // ─── Server query: getSupplierDebtBreakdown ───────────────────────────────────
 
 /**
- * Fetches line_items (with supplier and project status) plus all supplier payments,
+ * Fetches line_item_costs (with supplier info and project status) plus all supplier payments,
  * then delegates to aggregateSupplierDebt for bucketing.
  */
 export async function getSupplierDebtBreakdown(): Promise<SupplierDebtResult> {
   const supabase = await createClient()
 
-  const [lineItemsRes, paymentsRes] = await Promise.all([
-    supabase.from('line_items').select(`
-      costo_proveedor, cantidad, proveedor_id,
-      projects ( status ),
+  const [costsRes, paymentsRes] = await Promise.all([
+    supabase.from('line_item_costs').select(`
+      costo, supplier_id,
+      line_items ( project_id, projects ( status ) ),
       suppliers ( id, nombre )
     `),
     supabase.from('payments_supplier').select('supplier_id, monto'),
   ])
 
   return aggregateSupplierDebt(
-    (lineItemsRes.data ?? []) as SupplierLineItemLike[],
+    (costsRes.data ?? []) as SupplierCostLike[],
     (paymentsRes.data ?? []) as SupplierPaymentLike[]
   )
 }
@@ -381,7 +397,7 @@ export async function getSupplierDebtBreakdown(): Promise<SupplierDebtResult> {
 // ─── Server query: getMonthlyFinancials ──────────────────────────────────────
 
 /**
- * Fetches all projects with their line_items and delegates to
+ * Fetches all projects with their line_items (including line_item_costs) and delegates to
  * aggregateMonthlyFinancials to produce a 6-month revenue/cost/profit breakdown.
  */
 export async function getMonthlyFinancials(): Promise<MonthlyDataPoint[]> {
@@ -389,7 +405,7 @@ export async function getMonthlyFinancials(): Promise<MonthlyDataPoint[]> {
 
   const { data: projects } = await supabase.from('projects').select(`
     fecha_cotizacion,
-    line_items ( costo_proveedor, margen, cantidad )
+    line_items ( precio_venta, cantidad, line_item_costs ( costo ) )
   `)
 
   return aggregateMonthlyFinancials((projects ?? []) as MonthlyProjectLike[])
