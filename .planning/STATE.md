@@ -4,14 +4,14 @@ milestone: v2.0
 milestone_name: smart-costing-and-communications
 status: in_progress
 stopped_at: ~
-last_updated: "2026-03-06T00:00:00.000Z"
-last_activity: 2026-03-06 — v2.0 roadmap created (Phases 7–9 defined)
+last_updated: "2026-03-06T08:13:13Z"
+last_activity: 2026-03-06 — Phase 7 Plan 01 complete (schema migration + types + TDD calc functions)
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 1
+  completed_plans: 1
+  percent: 5
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: Phase 7 — Costos Multi-Proveedor (not started)
-Plan: —
-Status: Roadmap defined, ready for plan-phase
-Last activity: 2026-03-06 — v2.0 roadmap created
+Phase: Phase 7 — Costos Multi-Proveedor (in progress)
+Plan: 07-01 complete — ready for 07-02
+Status: Plan 01 complete. DB schema migrated, types updated, calculations TDD-green.
+Last activity: 2026-03-06 — 07-01 complete
 
-Progress: [----------] 0% (v2.0)
+Progress: [#---------] 5% (v2.0)
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Progress: [----------] 0% (v2.0)
 - Trend: stable
 
 *Updated after each plan completion*
+| Phase 07-costos-multi-proveedor P01 | 2 min | 2 tasks | 4 files |
 | Phase 02-proyectos-y-partidas P01 | 8 | 4 tasks | 7 files |
 | Phase 02-proyectos-y-partidas P02 | 6 min | 2 tasks | 13 files |
 | Phase 02-proyectos-y-partidas P03 | 27 | 2 tasks | 8 files |
@@ -133,10 +134,14 @@ Recent decisions affecting current work:
 - [v2.0 Roadmap]: Phase 7 must migrate existing costo_proveedor data into line_item_costs rows before dropping the column — migration must be reversible
 - [v2.0 Roadmap]: @react-pdf/renderer PDFViewer component is client-only (uses canvas) — Phase 8 preview modal must use next/dynamic({ ssr: false })
 - [v2.0 Roadmap]: Resend package not yet installed — Phase 9 first task is npm install resend and add RESEND_API_KEY to .env.local and Vercel env
+- [07-01]: precio_venta stored as direct admin input (NUMERIC(12,2)) — price is no longer formula-derived from cost + margin
+- [07-01]: calcMargenFromPrecio(precioVenta, totalCosto) returns 0 when precioVenta <= 0 — division-by-zero guard for display-only margin
+- [07-01]: calcTotalCostoFromCosts uses Number() coercion — matches Supabase NUMERIC string JSON response pattern
+- [07-01]: Old calcSubtotal, calcPrecioVenta, calcTotalCostoProyecto kept for backward compat — removed in Plan 02 after callers updated
 
 ### Pending Todos
 
-- Phase 7: Confirm whether to drop costo_proveedor column immediately or keep it nullable for backward compat during migration window
+- Phase 7: costo_proveedor dropped in 07-01 migration — resolved
 - Phase 8: Decide between @react-pdf/renderer PDFViewer (iframe-based) and a custom iframe with blob URL — PDFViewer is simpler but less controllable
 - Phase 9: Obtain Resend API key and configure sending domain before Phase 9 planning begins
 
@@ -147,6 +152,6 @@ None — v2.0 roadmap defined, ready to plan Phase 7.
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: v2.0 roadmap created — Phases 7, 8, 9 defined
+Stopped at: Completed 07-01-PLAN.md — DB schema migrated, types updated, TDD calc functions green
 Resume file: None
-Next action: /gsd:plan-phase 7
+Next action: /gsd:execute-phase 07-02 (update LineItemForm, LineItemTable, server actions for new schema)

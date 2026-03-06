@@ -99,11 +99,11 @@
 
 ### Multi-Supplier Costing (COST)
 
-- [ ] **COST-01**: Admin can add multiple supplier cost rows to a single line item (supplier + cost amount each)
-- [ ] **COST-02**: Total cost of a line item auto-calculates as the sum of all its supplier cost rows
-- [ ] **COST-03**: Admin enters the sale price (precio de venta) directly on a line item
-- [ ] **COST-04**: Margin auto-calculates from sale price and total cost: `margen = (precioVenta - totalCosto) / precioVenta`
-- [ ] **COST-05**: Project totals (subtotal, IVA, gran total) recalculate correctly with the new cost model
+- [x] **COST-01**: Admin can add multiple supplier cost rows to a single line item (supplier + cost amount each) [07-01: line_item_costs table created]
+- [x] **COST-02**: Total cost of a line item auto-calculates as the sum of all its supplier cost rows [07-01: calcTotalCostoFromCosts]
+- [x] **COST-03**: Admin enters the sale price (precio de venta) directly on a line item [07-01: precio_venta column added to line_items]
+- [x] **COST-04**: Margin auto-calculates from sale price and total cost: `margen = (precioVenta - totalCosto) / precioVenta` [07-01: calcMargenFromPrecio]
+- [x] **COST-05**: Project totals (subtotal, IVA, gran total) recalculate correctly with the new cost model [07-01: calcSubtotalFromPrecio]
 - [ ] **COST-06**: Purchase order PDF groups line items by supplier using the new per-line-item supplier costs
 
 ### PDF Preview (PREV)

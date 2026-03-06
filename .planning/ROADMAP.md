@@ -135,7 +135,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — DB migration (line_item_costs table, precio_venta column, drop old columns), updated types, new calculation functions (TDD)
+- [x] 07-01-PLAN.md — DB migration (line_item_costs table, precio_venta column, drop old columns), updated types, new calculation functions (TDD) [COMPLETE 2026-03-06]
 - [ ] 07-02-PLAN.md — Server Actions refactor (precio_venta + cost row CRUD), query layer update (projects, suppliers, dashboard)
 - [ ] 07-03-PLAN.md — UI components (LineItemForm cost sub-panel, LineItemTable, ProjectFinancialSummary, OC PDF button logic), human verification
 
