@@ -20,6 +20,10 @@ import {
   calcSaldoProveedor,
   ANTICIPO_RATE,
   SALDO_RATE,
+  // Phase 7 — multi-supplier cost model
+  calcTotalCostoFromCosts,
+  calcMargenFromPrecio,
+  calcSubtotalFromPrecio,
 } from './calculations'
 
 describe('calcPrecioVenta', () => {
@@ -156,5 +160,49 @@ describe('Constants', () => {
 
   it('IVA_RATE === 0.16', () => {
     expect(IVA_RATE).toBe(0.16)
+  })
+})
+
+describe('Phase 7 — multi-supplier cost model', () => {
+  // calcTotalCostoFromCosts
+  it('calcTotalCostoFromCosts([{costo:100},{costo:50}]) === 150', () => {
+    expect(calcTotalCostoFromCosts([{ costo: 100 }, { costo: 50 }])).toBe(150)
+  })
+
+  it('calcTotalCostoFromCosts([]) === 0 (empty array edge case)', () => {
+    expect(calcTotalCostoFromCosts([])).toBe(0)
+  })
+
+  // calcMargenFromPrecio
+  it('calcMargenFromPrecio(200, 100) === 0.5', () => {
+    expect(calcMargenFromPrecio(200, 100)).toBeCloseTo(0.5, 5)
+  })
+
+  it('calcMargenFromPrecio(200, 0) === 1.0 (zero cost = 100% margin)', () => {
+    expect(calcMargenFromPrecio(200, 0)).toBeCloseTo(1.0, 5)
+  })
+
+  it('calcMargenFromPrecio(0, 100) === 0 (division-by-zero guard, precioVenta=0)', () => {
+    expect(calcMargenFromPrecio(0, 100)).toBe(0)
+  })
+
+  it('calcMargenFromPrecio(0, 0) === 0 (both zero, no crash)', () => {
+    expect(calcMargenFromPrecio(0, 0)).toBe(0)
+  })
+
+  // calcSubtotalFromPrecio
+  it('calcSubtotalFromPrecio([{precio_venta:200,cantidad:2}]) === 400', () => {
+    expect(calcSubtotalFromPrecio([{ precio_venta: 200, cantidad: 2 }])).toBe(400)
+  })
+
+  it('calcSubtotalFromPrecio([{precio_venta:100,cantidad:1},{precio_venta:50,cantidad:3}]) === 250', () => {
+    expect(calcSubtotalFromPrecio([
+      { precio_venta: 100, cantidad: 1 },
+      { precio_venta: 50, cantidad: 3 },
+    ])).toBe(250)
+  })
+
+  it('calcSubtotalFromPrecio([]) === 0', () => {
+    expect(calcSubtotalFromPrecio([])).toBe(0)
   })
 })

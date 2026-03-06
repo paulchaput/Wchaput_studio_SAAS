@@ -132,3 +132,35 @@ export function calcSaldoProveedor(
 ): number {
   return totalOwed - totalPagado
 }
+
+// ============================================================
+// Phase 7 — Multi-supplier cost model
+// ============================================================
+
+/**
+ * Total cost from all line_item_costs rows for a line item.
+ * Replaces the old single costo_proveedor column.
+ * COST-02: sum of all supplier costs
+ */
+export function calcTotalCostoFromCosts(costs: Array<{ costo: number }>): number {
+  return costs.reduce((sum, c) => sum + Number(c.costo), 0)
+}
+
+/**
+ * Gross margin derived from price and total cost.
+ * Returns 0 when precioVenta <= 0 (division-by-zero guard).
+ * COST-04: margin = (precioVenta - totalCosto) / precioVenta
+ */
+export function calcMargenFromPrecio(precioVenta: number, totalCosto: number): number {
+  if (precioVenta <= 0) return 0
+  return (precioVenta - totalCosto) / precioVenta
+}
+
+/**
+ * Subtotal (pre-IVA revenue) computed from precio_venta × cantidad per line item.
+ * Replaces calcSubtotal once all callers are migrated (Plan 02).
+ * COST-05: sum of (precio_venta × cantidad) per line item
+ */
+export function calcSubtotalFromPrecio(items: Array<{ precio_venta: number; cantidad: number }>): number {
+  return items.reduce((sum, item) => sum + item.precio_venta * item.cantidad, 0)
+}
