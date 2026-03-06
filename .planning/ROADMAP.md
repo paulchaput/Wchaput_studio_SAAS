@@ -132,7 +132,12 @@ Plans:
   2. Admin enters a sale price directly on a line item — the margin percentage displays as auto-calculated from sale price and total cost: `(precioVenta - totalCosto) / precioVenta`
   3. Editing or deleting any supplier cost row immediately recalculates the line item total cost, the margin, and all project totals (subtotal, IVA, grand total, gross profit)
   4. The purchase order PDF for a given supplier only shows line items that include a cost row for that supplier — items with no cost row for that supplier are excluded
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — DB migration (line_item_costs table, precio_venta column, drop old columns), updated types, new calculation functions (TDD)
+- [ ] 07-02-PLAN.md — Server Actions refactor (precio_venta + cost row CRUD), query layer update (projects, suppliers, dashboard)
+- [ ] 07-03-PLAN.md — UI components (LineItemForm cost sub-panel, LineItemTable, ProjectFinancialSummary, OC PDF button logic), human verification
 
 ### Phase 8: Vista Previa de PDFs
 **Goal**: Admin can see the exact rendered PDF in-app before deciding to download — for both quote and purchase order documents
@@ -172,6 +177,6 @@ Note: v2.0 phases are strictly sequential. Phase 8 depends on Phase 7 because th
 | 4. Checklist de Produccion | 2/2 | Complete   | 2026-03-05 |
 | 5. Generacion de PDFs | 2/2 | Complete   | 2026-03-05 |
 | 6. Dashboard y Vista Contador | 3/3 | Complete    | 2026-03-05 |
-| 7. Costos Multi-Proveedor | 0/TBD | Not started | - |
+| 7. Costos Multi-Proveedor | 0/3 | Not started | - |
 | 8. Vista Previa de PDFs | 0/TBD | Not started | - |
 | 9. Email y Confirmaciones | 0/TBD | Not started | - |
