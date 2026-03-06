@@ -136,7 +136,7 @@ Plans:
 
 Plans:
 - [x] 07-01-PLAN.md — DB migration (line_item_costs table, precio_venta column, drop old columns), updated types, new calculation functions (TDD) [COMPLETE 2026-03-06]
-- [ ] 07-02-PLAN.md — Server Actions refactor (precio_venta + cost row CRUD), query layer update (projects, suppliers, dashboard)
+- [x] 07-02-PLAN.md — Server Actions refactor (precio_venta + cost row CRUD), query layer update (projects, suppliers, dashboard) [COMPLETE 2026-03-06]
 - [ ] 07-03-PLAN.md — UI components (LineItemForm cost sub-panel, LineItemTable, ProjectFinancialSummary, OC PDF button logic), human verification
 
 ### Phase 8: Vista Previa de PDFs
@@ -177,6 +177,6 @@ Note: v2.0 phases are strictly sequential. Phase 8 depends on Phase 7 because th
 | 4. Checklist de Produccion | 2/2 | Complete   | 2026-03-05 |
 | 5. Generacion de PDFs | 2/2 | Complete   | 2026-03-05 |
 | 6. Dashboard y Vista Contador | 3/3 | Complete    | 2026-03-05 |
-| 7. Costos Multi-Proveedor | 0/3 | Not started | - |
+| 7. Costos Multi-Proveedor | 2/3 | In Progress | - |
 | 8. Vista Previa de PDFs | 0/TBD | Not started | - |
 | 9. Email y Confirmaciones | 0/TBD | Not started | - |

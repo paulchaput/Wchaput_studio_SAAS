@@ -4,14 +4,14 @@ milestone: v2.0
 milestone_name: smart-costing-and-communications
 status: in_progress
 stopped_at: ~
-last_updated: "2026-03-06T08:13:13Z"
-last_activity: 2026-03-06 — Phase 7 Plan 01 complete (schema migration + types + TDD calc functions)
+last_updated: "2026-03-06T14:21:00Z"
+last_activity: 2026-03-06 — Phase 7 Plan 02 complete (server actions + queries + dashboard migrated to multi-supplier model)
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 1
-  completed_plans: 1
-  percent: 5
+  total_plans: 2
+  completed_plans: 2
+  percent: 10
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: Phase 7 — Costos Multi-Proveedor (in progress)
-Plan: 07-01 complete — ready for 07-02
-Status: Plan 01 complete. DB schema migrated, types updated, calculations TDD-green.
-Last activity: 2026-03-06 — 07-01 complete
+Plan: 07-02 complete — ready for 07-03
+Status: Plan 02 complete. Server actions + all query modules + dashboard aggregation migrated to multi-supplier model. Component layer (Plan 03) remaining.
+Last activity: 2026-03-06 — 07-02 complete
 
-Progress: [#---------] 5% (v2.0)
+Progress: [##--------] 10% (v2.0)
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Progress: [#---------] 5% (v2.0)
 
 *Updated after each plan completion*
 | Phase 07-costos-multi-proveedor P01 | 2 min | 2 tasks | 4 files |
+| Phase 07-costos-multi-proveedor P02 | 5 min | 2 tasks | 5 files |
 | Phase 02-proyectos-y-partidas P01 | 8 | 4 tasks | 7 files |
 | Phase 02-proyectos-y-partidas P02 | 6 min | 2 tasks | 13 files |
 | Phase 02-proyectos-y-partidas P03 | 27 | 2 tasks | 8 files |
@@ -138,6 +139,10 @@ Recent decisions affecting current work:
 - [07-01]: calcMargenFromPrecio(precioVenta, totalCosto) returns 0 when precioVenta <= 0 — division-by-zero guard for display-only margin
 - [07-01]: calcTotalCostoFromCosts uses Number() coercion — matches Supabase NUMERIC string JSON response pattern
 - [07-01]: Old calcSubtotal, calcPrecioVenta, calcTotalCostoProyecto kept for backward compat — removed in Plan 02 after callers updated
+- [07-02]: createLineItemCostAction/deleteLineItemCostAction use hidden-inputs + FormData pattern (no .bind()) — consistent with deleteLineItemAction
+- [07-02]: getSupplierWithDetails returns costo_proveedor key in output for backward compat with supplier detail page — but source is now line_item_costs.costo
+- [07-02]: aggregateSupplierDebt receives SupplierCostLike[] (line_item_costs rows) not line_items rows — debt calculation sums per-cost-row
+- [07-02]: Two-step query in getProjectLineItemsBySupplier: fetch all line_items, then line_item_costs by supplier, intersect — avoids Supabase nested filter limitations
 
 ### Pending Todos
 
@@ -152,6 +157,6 @@ None — v2.0 roadmap defined, ready to plan Phase 7.
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Completed 07-01-PLAN.md — DB schema migrated, types updated, TDD calc functions green
+Stopped at: Completed 07-02-PLAN.md — server actions + queries + dashboard migrated to multi-supplier model
 Resume file: None
-Next action: /gsd:execute-phase 07-02 (update LineItemForm, LineItemTable, server actions for new schema)
+Next action: /gsd:execute-phase 07-03 (update LineItemForm and LineItemTable components for new schema)
