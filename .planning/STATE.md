@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: completed
-stopped_at: Completed 06-02-PLAN.md — Recharts charts added to admin dashboard
-last_updated: "2026-03-05T14:06:14.925Z"
-last_activity: 2026-03-05 — Completed 06-03 (Accountant Financial Views)
+milestone: v2.0
+milestone_name: smart-costing-and-communications
+status: in_progress
+stopped_at: ~
+last_updated: "2026-03-06T00:00:00.000Z"
+last_activity: 2026-03-06 — Milestone v2.0 started
 progress:
-  total_phases: 6
-  completed_phases: 4
-  total_plans: 16
-  completed_plans: 13
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** Partners can see the financial health of every active project and the business as a whole, generate client-facing PDFs that never expose internal costs, and track every payment to and from every stakeholder.
-**Current focus:** ALL PHASES COMPLETE — milestone v1.0 delivered
+**Current focus:** Milestone v2.0 — multi-supplier costing, PDF preview, email confirmations
 
 ## Current Position
 
-Phase: 6 of 6 (Dashboard y Vista Contador) — COMPLETE
-Plan: 3 of 3 in current phase — COMPLETE
-Status: All 6 phases complete — project milestone v1.0 achieved
-Last activity: 2026-03-05 — Completed 06-03 (Accountant Financial Views)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-06 — Milestone v2.0 started
 
 Progress: [██████████] 100%
 

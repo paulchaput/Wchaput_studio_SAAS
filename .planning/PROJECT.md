@@ -66,5 +66,15 @@ Partners can see — at a glance — the financial health of every active projec
 | Margin editable per line item, default 50% | Flexibility for negotiated projects while maintaining business standard | — Pending |
 | Spanish UI throughout | The studio operates in Mexico; Paul and Chris are bilingual but clients/suppliers are Spanish-speaking | — Pending |
 
+## Current Milestone: v2.0 — Smart Costing & Communications
+
+**Goal:** Replace single-supplier line items with multi-supplier cost breakdown, add in-app PDF previews before download, and introduce email notifications with in-app confirmation buttons.
+
+**Target features:**
+- Multi-supplier costs per line item: attach N suppliers with individual costs, sum auto-calculates total cost
+- Sale price input with auto-calculated margin (instead of margin-first entry)
+- In-app PDF preview before downloading quote or purchase order
+- Email notifications (via Resend) for quote delivery and payment reminders — with in-app confirmation before sending
+
 ---
-*Last updated: 2026-03-03 after initialization*
+*Last updated: 2026-03-06 — v2.0 milestone started*
