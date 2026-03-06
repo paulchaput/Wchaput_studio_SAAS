@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v2.0
-milestone_name: smart-costing-and-communications
-status: in_progress
-stopped_at: ~
-last_updated: "2026-03-06T14:21:00Z"
-last_activity: 2026-03-06 — Phase 7 Plan 02 complete (server actions + queries + dashboard migrated to multi-supplier model)
+milestone_name: milestone
+status: completed
+stopped_at: Completed 07-03-PLAN.md — UI components updated for multi-supplier model
+last_updated: "2026-03-06T14:32:25.799Z"
+last_activity: 2026-03-06 — 07-02 complete
 progress:
-  total_phases: 3
-  completed_phases: 0
-  total_plans: 2
-  completed_plans: 2
+  total_phases: 9
+  completed_phases: 5
+  total_plans: 19
+  completed_plans: 16
   percent: 10
 ---
 
@@ -66,6 +66,7 @@ Progress: [##--------] 10% (v2.0)
 | Phase 06-dashboard-y-vista-contador P01 | 3 min | 2 tasks | 8 files |
 | Phase 06-dashboard-y-vista-contador P03 | 8 min | 3 tasks | 7 files |
 | Phase 06-dashboard-y-vista-contador P02 | 4 | 2 tasks | 7 files |
+| Phase 07-costos-multi-proveedor P03 | 391 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -143,6 +144,8 @@ Recent decisions affecting current work:
 - [07-02]: getSupplierWithDetails returns costo_proveedor key in output for backward compat with supplier detail page — but source is now line_item_costs.costo
 - [07-02]: aggregateSupplierDebt receives SupplierCostLike[] (line_item_costs rows) not line_items rows — debt calculation sums per-cost-row
 - [07-02]: Two-step query in getProjectLineItemsBySupplier: fetch all line_items, then line_item_costs by supplier, intersect — avoids Supabase nested filter limitations
+- [Phase 07-03]: LineItemForm uses local useState for add-cost sub-panel instead of useFieldArray — single-row add pattern is simpler and avoids react-hook-form nesting complexity
+- [Phase 07-03]: SupplierPaymentPanel updated to accept LineItem[] — totalOwed computed from line_item_costs x cantidad per supplier (multi-supplier model)
 
 ### Pending Todos
 
@@ -156,7 +159,7 @@ None — v2.0 roadmap defined, ready to plan Phase 7.
 
 ## Session Continuity
 
-Last session: 2026-03-06
-Stopped at: Completed 07-02-PLAN.md — server actions + queries + dashboard migrated to multi-supplier model
+Last session: 2026-03-06T14:32:25.796Z
+Stopped at: Completed 07-03-PLAN.md — UI components updated for multi-supplier model
 Resume file: None
 Next action: /gsd:execute-phase 07-03 (update LineItemForm and LineItemTable components for new schema)

@@ -104,7 +104,7 @@
 - [x] **COST-03**: Admin enters the sale price (precio de venta) directly on a line item [07-01: precio_venta column added to line_items]
 - [x] **COST-04**: Margin auto-calculates from sale price and total cost: `margen = (precioVenta - totalCosto) / precioVenta` [07-01: calcMargenFromPrecio]
 - [x] **COST-05**: Project totals (subtotal, IVA, gran total) recalculate correctly with the new cost model [07-01: calcSubtotalFromPrecio]
-- [ ] **COST-06**: Purchase order PDF groups line items by supplier using the new per-line-item supplier costs
+- [x] **COST-06**: Purchase order PDF groups line items by supplier using the new per-line-item supplier costs
 
 ### PDF Preview (PREV)
 
@@ -208,12 +208,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONT-02 | Phase 6 | Complete (06-03) |
 | CONT-03 | Phase 6 | Complete (06-03) |
 | CONT-04 | Phase 6 | Complete (06-03) |
-| COST-01 | Phase 7 | Pending |
-| COST-02 | Phase 7 | Pending |
-| COST-03 | Phase 7 | Pending |
-| COST-04 | Phase 7 | Pending |
-| COST-05 | Phase 7 | Pending |
-| COST-06 | Phase 7 | Pending |
+| COST-01 | Phase 7 | Complete |
+| COST-02 | Phase 7 | Complete |
+| COST-03 | Phase 7 | Complete |
+| COST-04 | Phase 7 | Complete |
+| COST-05 | Phase 7 | Complete |
+| COST-06 | Phase 7 | Complete |
 | PREV-01 | Phase 8 | Pending |
 | PREV-02 | Phase 8 | Pending |
 | PREV-03 | Phase 8 | Pending |

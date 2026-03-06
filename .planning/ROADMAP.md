@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Checklist de Produccion** - 30-task production checklist seeded at project creation across 4 operational phases (completed 2026-03-05)
 - [x] **Phase 5: Generacion de PDFs** - Client-facing quote PDF and admin-only purchase order PDF (completed 2026-03-05)
 - [x] **Phase 6: Dashboard y Vista Contador** - Admin KPI dashboard with charts and read-only accountant financial view (completed 2026-03-05)
-- [ ] **Phase 7: Costos Multi-Proveedor** - DB migration for line_item_costs table, sale-price-first entry, margin auto-calc, updated OC PDF grouping by supplier
+- [x] **Phase 7: Costos Multi-Proveedor** - DB migration for line_item_costs table, sale-price-first entry, margin auto-calc, updated OC PDF grouping by supplier (completed 2026-03-06)
 - [ ] **Phase 8: Vista Previa de PDFs** - In-app PDF preview modal for quote and purchase order before download
 - [ ] **Phase 9: Email y Confirmaciones** - Resend integration, email templates for quote/OC/payment-reminder, in-app confirmation modal with preview before send
 
@@ -177,6 +177,6 @@ Note: v2.0 phases are strictly sequential. Phase 8 depends on Phase 7 because th
 | 4. Checklist de Produccion | 2/2 | Complete   | 2026-03-05 |
 | 5. Generacion de PDFs | 2/2 | Complete   | 2026-03-05 |
 | 6. Dashboard y Vista Contador | 3/3 | Complete    | 2026-03-05 |
-| 7. Costos Multi-Proveedor | 2/3 | In Progress | - |
+| 7. Costos Multi-Proveedor | 3/3 | Complete   | 2026-03-06 |
 | 8. Vista Previa de PDFs | 0/TBD | Not started | - |
 | 9. Email y Confirmaciones | 0/TBD | Not started | - |
