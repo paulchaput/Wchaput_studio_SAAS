@@ -5,9 +5,9 @@ milestone_name: smart-costing-and-communications
 status: in_progress
 stopped_at: ~
 last_updated: "2026-03-06T00:00:00.000Z"
-last_activity: 2026-03-06 — Milestone v2.0 started
+last_activity: 2026-03-06 — v2.0 roadmap created (Phases 7–9 defined)
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -18,28 +18,28 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-03)
+See: .planning/PROJECT.md (updated 2026-03-06)
 
 **Core value:** Partners can see the financial health of every active project and the business as a whole, generate client-facing PDFs that never expose internal costs, and track every payment to and from every stakeholder.
-**Current focus:** Milestone v2.0 — multi-supplier costing, PDF preview, email confirmations
+**Current focus:** Milestone v2.0 — multi-supplier costing (Phase 7), PDF preview (Phase 8), email confirmations (Phase 9)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 7 — Costos Multi-Proveedor (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-06 — Milestone v2.0 started
+Status: Roadmap defined, ready for plan-phase
+Last activity: 2026-03-06 — v2.0 roadmap created
 
-Progress: [██████████] 100%
+Progress: [----------] 0% (v2.0)
 
 ## Performance Metrics
 
-**Velocity:**
+**Velocity (v1.0 baseline):**
 - Total plans completed: 13
 - Average duration: 5 min
 - Total execution time: ~65 min
 
-**By Phase:**
+**By Phase (v1.0):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
@@ -129,17 +129,24 @@ Recent decisions affecting current work:
 - [Phase 06-02]: Recharts Tooltip formatter typed as (v: number | undefined) => string — Recharts Formatter generic allows undefined value
 - [Phase 06-02]: UTC-based date arithmetic in aggregateCashFlow — getUTCDate() prevents timezone off-by-one for Mexico City environment
 - [Phase 06-02]: next/dynamic({ ssr: false }) for Recharts components — prevents SSR hydration mismatch; data fetched server-side, passed as props
+- [v2.0 Roadmap]: line_item_costs is a new join table (line_item_id, supplier_id, costo NUMERIC(12,2)) — replaces single costo_proveedor column on line_items
+- [v2.0 Roadmap]: Phase 7 must migrate existing costo_proveedor data into line_item_costs rows before dropping the column — migration must be reversible
+- [v2.0 Roadmap]: @react-pdf/renderer PDFViewer component is client-only (uses canvas) — Phase 8 preview modal must use next/dynamic({ ssr: false })
+- [v2.0 Roadmap]: Resend package not yet installed — Phase 9 first task is npm install resend and add RESEND_API_KEY to .env.local and Vercel env
 
 ### Pending Todos
 
-None.
+- Phase 7: Confirm whether to drop costo_proveedor column immediately or keep it nullable for backward compat during migration window
+- Phase 8: Decide between @react-pdf/renderer PDFViewer (iframe-based) and a custom iframe with blob URL — PDFViewer is simpler but less controllable
+- Phase 9: Obtain Resend API key and configure sending domain before Phase 9 planning begins
 
 ### Blockers/Concerns
 
-None — all phases complete.
+None — v2.0 roadmap defined, ready to plan Phase 7.
 
 ## Session Continuity
 
-Last session: 2026-03-05T14:02:07.187Z
-Stopped at: Completed 06-02-PLAN.md — Recharts charts added to admin dashboard
+Last session: 2026-03-06
+Stopped at: v2.0 roadmap created — Phases 7, 8, 9 defined
 Resume file: None
+Next action: /gsd:plan-phase 7

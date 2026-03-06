@@ -4,6 +4,8 @@
 
 Six phases deliver a complete internal management tool for W Chaput Studio. The sequence is dependency-driven: security infrastructure and schema decisions come first because they cannot be retrofitted, core project data comes second because every other feature attaches to it, then payments and suppliers, then the production checklist, then PDF generation, and finally the dashboard and accountant views that aggregate across all built entities. Nothing is built before its foundation is stable.
 
+Milestone v2.0 adds three phases (7–9): multi-supplier costing replaces the single-supplier line item model; in-app PDF preview exposes the rendered output before download; email via Resend delivers PDFs and payment reminders with an in-app confirmation step before any message is sent.
+
 ## Phases
 
 **Phase Numbering:**
@@ -18,6 +20,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Checklist de Produccion** - 30-task production checklist seeded at project creation across 4 operational phases (completed 2026-03-05)
 - [x] **Phase 5: Generacion de PDFs** - Client-facing quote PDF and admin-only purchase order PDF (completed 2026-03-05)
 - [x] **Phase 6: Dashboard y Vista Contador** - Admin KPI dashboard with charts and read-only accountant financial view (completed 2026-03-05)
+- [ ] **Phase 7: Costos Multi-Proveedor** - DB migration for line_item_costs table, sale-price-first entry, margin auto-calc, updated OC PDF grouping by supplier
+- [ ] **Phase 8: Vista Previa de PDFs** - In-app PDF preview modal for quote and purchase order before download
+- [ ] **Phase 9: Email y Confirmaciones** - Resend integration, email templates for quote/OC/payment-reminder, in-app confirmation modal with preview before send
 
 ## Phase Details
 
@@ -118,12 +123,46 @@ Plans:
 - [ ] 06-02-PLAN.md — Recharts bar chart (monthly revenue/cost/profit) and 30-day cash flow projection; dynamic({ ssr: false }) wiring
 - [x] 06-03-PLAN.md — gran_total migration, accountant /resumen and /flujo-efectivo pages, sidebar link, read-only enforcement; human verification checkpoint
 
+### Phase 7: Costos Multi-Proveedor
+**Goal**: Admin can attach multiple supplier cost rows to any line item, enter the sale price directly, and see the margin auto-calculated — purchase orders group line items correctly by supplier using the new cost model
+**Depends on**: Phase 6
+**Requirements**: COST-01, COST-02, COST-03, COST-04, COST-05, COST-06
+**Success Criteria** (what must be TRUE):
+  1. Admin can add two or more supplier cost rows (each with a supplier and cost amount) to a single line item — the total cost of that line item equals the sum of all supplier cost rows
+  2. Admin enters a sale price directly on a line item — the margin percentage displays as auto-calculated from sale price and total cost: `(precioVenta - totalCosto) / precioVenta`
+  3. Editing or deleting any supplier cost row immediately recalculates the line item total cost, the margin, and all project totals (subtotal, IVA, grand total, gross profit)
+  4. The purchase order PDF for a given supplier only shows line items that include a cost row for that supplier — items with no cost row for that supplier are excluded
+**Plans**: TBD
+
+### Phase 8: Vista Previa de PDFs
+**Goal**: Admin can see the exact rendered PDF in-app before deciding to download — for both quote and purchase order documents
+**Depends on**: Phase 7
+**Requirements**: PREV-01, PREV-02, PREV-03
+**Success Criteria** (what must be TRUE):
+  1. Admin can open a preview modal on the project detail page that renders the quote PDF inline — the preview shows the same content as the downloaded file
+  2. Admin can open a preview modal for any purchase order — the preview renders the supplier-filtered PDF inline before download
+  3. The download button remains accessible from within the preview modal — admin can download directly after previewing without closing and reopening
+**Plans**: TBD
+
+### Phase 9: Email y Confirmaciones
+**Goal**: Admin can send quote PDFs, purchase order PDFs, and payment reminders via email — every send requires an explicit in-app confirmation with a preview, and the result (success or error) is shown immediately
+**Depends on**: Phase 8
+**Requirements**: EMAIL-01, EMAIL-02, EMAIL-03, EMAIL-04, EMAIL-05
+**Success Criteria** (what must be TRUE):
+  1. Admin can send the quote PDF to a client email address — an in-app confirmation modal shows a message preview before the email is dispatched
+  2. Admin can send a purchase order PDF to a supplier's email address — an in-app confirmation modal shows a preview before sending
+  3. Admin can send a payment reminder to a client — the reminder message includes the outstanding balance and due payment type (anticipo or saldo), confirmed in-app before sending
+  4. No email is sent without the admin explicitly approving the confirmation step — the send action is never triggered automatically
+  5. After every send attempt, the admin sees a clear success message or a descriptive error message — no silent failures
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+v1.0 phases: 1 → 2 → 3 → 4 → 5 → 6
+v2.0 phases: 7 → 8 → 9
 
-Note: Phases 3 and 4 both depend on Phase 2 and are independent of each other. Phase 5 depends on Phase 3 (supplier assignment on line items needed for POs). Phase 6 depends on Phase 3 (payments must exist to aggregate).
+Note: v2.0 phases are strictly sequential. Phase 8 depends on Phase 7 because the PDF preview renders documents that use the new multi-supplier cost model. Phase 9 depends on Phase 8 because email sends reference the same PDF generation and preview infrastructure.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -133,3 +172,6 @@ Note: Phases 3 and 4 both depend on Phase 2 and are independent of each other. P
 | 4. Checklist de Produccion | 2/2 | Complete   | 2026-03-05 |
 | 5. Generacion de PDFs | 2/2 | Complete   | 2026-03-05 |
 | 6. Dashboard y Vista Contador | 3/3 | Complete    | 2026-03-05 |
+| 7. Costos Multi-Proveedor | 0/TBD | Not started | - |
+| 8. Vista Previa de PDFs | 0/TBD | Not started | - |
+| 9. Email y Confirmaciones | 0/TBD | Not started | - |

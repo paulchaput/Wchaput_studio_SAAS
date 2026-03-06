@@ -208,13 +208,30 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONT-02 | Phase 6 | Complete (06-03) |
 | CONT-03 | Phase 6 | Complete (06-03) |
 | CONT-04 | Phase 6 | Complete (06-03) |
+| COST-01 | Phase 7 | Pending |
+| COST-02 | Phase 7 | Pending |
+| COST-03 | Phase 7 | Pending |
+| COST-04 | Phase 7 | Pending |
+| COST-05 | Phase 7 | Pending |
+| COST-06 | Phase 7 | Pending |
+| PREV-01 | Phase 8 | Pending |
+| PREV-02 | Phase 8 | Pending |
+| PREV-03 | Phase 8 | Pending |
+| EMAIL-01 | Phase 9 | Pending |
+| EMAIL-02 | Phase 9 | Pending |
+| EMAIL-03 | Phase 9 | Pending |
+| EMAIL-04 | Phase 9 | Pending |
+| EMAIL-05 | Phase 9 | Pending |
 
 **Coverage:**
 - v1.0 requirements: 57 total — all complete ✓
-- v2.0 requirements: 14 total — roadmap pending
+- v2.0 requirements: 14 total — 14/14 mapped ✓
 
-**v2.0 Phase distribution:** (to be filled by roadmapper)
+**v2.0 Phase distribution:**
+- Phase 7 (Costos Multi-Proveedor): COST-01, COST-02, COST-03, COST-04, COST-05, COST-06 (6 requirements)
+- Phase 8 (Vista Previa de PDFs): PREV-01, PREV-02, PREV-03 (3 requirements)
+- Phase 9 (Email y Confirmaciones): EMAIL-01, EMAIL-02, EMAIL-03, EMAIL-04, EMAIL-05 (5 requirements)
 
 ---
 *Requirements defined: 2026-03-03*
-*Last updated: 2026-03-06 — v2.0 requirements added (COST, PREV, EMAIL)*
+*Last updated: 2026-03-06 — v2.0 requirements mapped to Phases 7–9*
