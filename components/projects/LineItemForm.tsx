@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { PencilIcon, PlusIcon } from 'lucide-react'
+import { PencilIcon, PlusIcon, TrashIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,20 +26,22 @@ import {
 } from '@/components/ui/select'
 
 import { LineItem } from '@/lib/types'
-import { calcPrecioVenta } from '@/lib/calculations'
-import { formatMXN, margenToPercent } from '@/lib/formatters'
-import { createLineItemAction, updateLineItemAction } from '@/lib/actions/line-items'
+import { calcMargenFromPrecio, calcTotalCostoFromCosts } from '@/lib/calculations'
+import { formatMXN } from '@/lib/formatters'
+import {
+  createLineItemAction,
+  updateLineItemAction,
+  createLineItemCostAction,
+  deleteLineItemCostAction,
+} from '@/lib/actions/line-items'
 
-// Client-side validation schema — margen as percentage integer (e.g. 50)
-// The server action does the percent→decimal conversion (50 → 0.50)
+// Client-side validation schema — precio_venta as direct input
 const formSchema = z.object({
-  descripcion: z.string().min(1, 'La descripción es requerida'),
+  descripcion: z.string().min(1, 'La descripcion es requerida'),
   referencia: z.string().optional(),
   dimensiones: z.string().optional(),
   cantidad: z.coerce.number().int().positive('La cantidad debe ser mayor a 0'),
-  proveedor_id: z.string().optional().nullable(),
-  costo_proveedor: z.coerce.number().nonnegative('El costo no puede ser negativo'),
-  margen: z.coerce.number().min(0).max(99, 'El margen no puede ser 100% o más'),
+  precio_venta: z.coerce.number().nonnegative('El precio de venta no puede ser negativo'),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -53,7 +55,12 @@ interface LineItemFormProps {
 export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormProps) {
   const [open, setOpen] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
-  const [precioPreview, setPrecioPreview] = useState<string | null>(null)
+
+  // State for the add-cost row sub-panel
+  const [newCostSupplierId, setNewCostSupplierId] = useState<string>('')
+  const [newCostAmount, setNewCostAmount] = useState<string>('')
+  const [costError, setCostError] = useState<string | null>(null)
+  const [isAddingCost, setIsAddingCost] = useState(false)
 
   const isEditMode = Boolean(lineItem)
 
@@ -63,19 +70,14 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
         referencia: lineItem.referencia ?? '',
         dimensiones: lineItem.dimensiones ?? '',
         cantidad: lineItem.cantidad,
-        proveedor_id: lineItem.proveedor_id ?? null,
-        costo_proveedor: lineItem.costo_proveedor,
-        // margenToPercent: 0.50 → "50"
-        margen: parseFloat(margenToPercent(lineItem.margen)),
+        precio_venta: lineItem.precio_venta,
       }
     : {
         descripcion: '',
         referencia: '',
         dimensiones: '',
         cantidad: 1,
-        proveedor_id: null,
-        costo_proveedor: 0,
-        margen: 50,
+        precio_venta: 0,
       }
 
   const form = useForm<FormValues>({
@@ -83,21 +85,12 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
     defaultValues,
   })
 
-  function updatePrecioPreview() {
-    const costo = form.getValues('costo_proveedor')
-    const margenPct = form.getValues('margen')
-    if (costo >= 0 && margenPct >= 0 && margenPct < 100) {
-      const margenDecimal = margenPct / 100
-      try {
-        const precio = calcPrecioVenta(costo, margenDecimal)
-        setPrecioPreview(formatMXN(precio))
-      } catch {
-        setPrecioPreview(null)
-      }
-    } else {
-      setPrecioPreview(null)
-    }
-  }
+  // Compute margin from current cost rows (read-only display)
+  const precioVenta = form.watch('precio_venta') ?? 0
+  const existingCosts = lineItem?.line_item_costs ?? []
+  const totalCostoUnitario = calcTotalCostoFromCosts(existingCosts)
+  const margenDecimal = calcMargenFromPrecio(Number(precioVenta), totalCostoUnitario)
+  const margenDisplay = (margenDecimal * 100).toFixed(1)
 
   async function onSubmit(values: FormValues) {
     setServerError(null)
@@ -108,9 +101,7 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
     formData.append('referencia', values.referencia ?? '')
     formData.append('dimensiones', values.dimensiones ?? '')
     formData.append('cantidad', String(values.cantidad))
-    formData.append('proveedor_id', values.proveedor_id ?? '')
-    formData.append('costo_proveedor', String(values.costo_proveedor))
-    formData.append('margen', String(values.margen))
+    formData.append('precio_venta', String(values.precio_venta))
 
     let result: { error?: string }
 
@@ -128,7 +119,38 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
     setOpen(false)
     form.reset(defaultValues)
     setServerError(null)
-    setPrecioPreview(null)
+  }
+
+  async function handleAddCost() {
+    setCostError(null)
+    if (!newCostSupplierId) {
+      setCostError('Selecciona un proveedor')
+      return
+    }
+    const costoNum = parseFloat(newCostAmount)
+    if (isNaN(costoNum) || costoNum < 0) {
+      setCostError('Ingresa un costo valido')
+      return
+    }
+    if (!lineItem?.id) return
+
+    setIsAddingCost(true)
+    const fd = new FormData()
+    fd.append('line_item_id', lineItem.id)
+    fd.append('supplier_id', newCostSupplierId)
+    fd.append('costo', String(costoNum))
+
+    const result = await createLineItemCostAction(fd)
+    setIsAddingCost(false)
+
+    if (result.error) {
+      setCostError(result.error)
+      return
+    }
+
+    // Reset add-cost form
+    setNewCostSupplierId('')
+    setNewCostAmount('')
   }
 
   function handleOpenChange(isOpen: boolean) {
@@ -136,7 +158,9 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
     if (!isOpen) {
       form.reset(defaultValues)
       setServerError(null)
-      setPrecioPreview(null)
+      setNewCostSupplierId('')
+      setNewCostAmount('')
+      setCostError(null)
     }
   }
 
@@ -170,7 +194,7 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
           {/* Descripcion */}
           <div className="space-y-1">
             <Label htmlFor="descripcion">
-              Descripción <span className="text-destructive">*</span>
+              Descripcion <span className="text-destructive">*</span>
             </Label>
             <Input
               id="descripcion"
@@ -223,78 +247,120 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
             )}
           </div>
 
-          {/* Proveedor */}
+          {/* Precio de Venta */}
           <div className="space-y-1">
-            <Label>Proveedor</Label>
-            <Select
-              defaultValue={defaultValues.proveedor_id ?? 'none'}
-              onValueChange={(val) =>
-                form.setValue('proveedor_id', val === 'none' ? null : val)
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Sin proveedor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sin proveedor</SelectItem>
-                {suppliers.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>
-                    {s.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Costo Proveedor */}
-          <div className="space-y-1">
-            <Label htmlFor="costo_proveedor">
-              Costo Proveedor <span className="text-destructive">*</span>
+            <Label htmlFor="precio_venta">
+              Precio de Venta (MXN) <span className="text-destructive">*</span>
             </Label>
             <Input
-              id="costo_proveedor"
+              id="precio_venta"
               type="number"
               min={0}
               step={0.01}
               placeholder="0.00"
-              {...form.register('costo_proveedor', {
-                onBlur: updatePrecioPreview,
-              })}
+              {...form.register('precio_venta')}
             />
-            {form.formState.errors.costo_proveedor && (
+            {form.formState.errors.precio_venta && (
               <p className="text-sm text-destructive">
-                {form.formState.errors.costo_proveedor.message}
+                {form.formState.errors.precio_venta.message}
               </p>
             )}
           </div>
 
-          {/* Margen % */}
-          <div className="space-y-1">
-            <Label htmlFor="margen">
-              Margen % <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="margen"
-              type="number"
-              min={0}
-              max={99}
-              step={1}
-              {...form.register('margen', {
-                onBlur: updatePrecioPreview,
-              })}
-            />
-            {form.formState.errors.margen && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.margen.message}
-              </p>
-            )}
-          </div>
+          {/* Cost Rows Sub-panel — visible only when editing an existing line item */}
+          {isEditMode && lineItem && (
+            <div className="space-y-3 rounded-md border p-3">
+              <h4 className="text-sm font-medium">Costos por Proveedor</h4>
 
-          {/* Precio Venta Preview */}
-          {precioPreview && (
-            <div className="rounded-md bg-muted px-3 py-2 text-sm">
-              <span className="text-muted-foreground">Precio de venta estimado: </span>
-              <span className="font-medium">{precioPreview}</span>
+              {/* Existing cost rows */}
+              {existingCosts.length > 0 ? (
+                <div className="space-y-1.5">
+                  {existingCosts.map((cost) => (
+                    <div
+                      key={cost.id}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <span className="text-muted-foreground">
+                        {cost.suppliers?.nombre ?? 'Proveedor desconocido'}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span>{formatMXN(Number(cost.costo))}</span>
+                        <form
+                          action={async (fd) => {
+                            await deleteLineItemCostAction(fd)
+                          }}
+                        >
+                          <input type="hidden" name="costRowId" value={cost.id} />
+                          <input type="hidden" name="lineItemId" value={lineItem.id} />
+                          <button
+                            type="submit"
+                            className="text-destructive hover:text-destructive/80 transition-colors"
+                            aria-label="Eliminar costo"
+                            onClick={(e) => {
+                              if (!confirm('Eliminar este costo?')) e.preventDefault()
+                            }}
+                          >
+                            <TrashIcon className="size-3.5" />
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">Sin costos registrados.</p>
+              )}
+
+              {/* Add cost row */}
+              <div className="space-y-2 pt-1 border-t">
+                <p className="text-xs text-muted-foreground">Agregar costo</p>
+                <div className="flex gap-2">
+                  <Select
+                    value={newCostSupplierId}
+                    onValueChange={setNewCostSupplierId}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Proveedor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {suppliers.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    placeholder="0.00"
+                    value={newCostAmount}
+                    onChange={(e) => setNewCostAmount(e.target.value)}
+                    className="w-28"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={handleAddCost}
+                    disabled={isAddingCost}
+                  >
+                    {isAddingCost ? 'Agregando...' : 'Agregar Costo'}
+                  </Button>
+                </div>
+                {costError && (
+                  <p className="text-sm text-destructive">{costError}</p>
+                )}
+              </div>
+
+              {/* Computed margin display */}
+              <div className="rounded-md bg-muted px-3 py-2 text-sm">
+                <span className="text-muted-foreground">Costo total unitario: </span>
+                <span className="font-medium">{formatMXN(totalCostoUnitario)}</span>
+                <span className="text-muted-foreground ml-3">Margen: </span>
+                <span className="font-medium">{margenDisplay}%</span>
+              </div>
             </div>
           )}
 

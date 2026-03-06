@@ -1,23 +1,38 @@
 'use client'
 
-import { calcSubtotal, calcIVA, calcTotal, calcTotalCostoProyecto, calcUtilidad } from '@/lib/calculations'
+import { calcSubtotalFromPrecio, calcIVA, calcTotal, calcUtilidad } from '@/lib/calculations'
 import { formatMXN } from '@/lib/formatters'
 import { Separator } from '@/components/ui/separator'
 
+interface LineItemCostLike {
+  costo: number
+}
+
+interface LineItemLike {
+  precio_venta: number
+  cantidad: number
+  line_item_costs?: LineItemCostLike[]
+}
+
 interface ProjectFinancialSummaryProps {
-  lineItems: Array<{
-    costo_proveedor: number
-    margen: number
-    cantidad: number
-  }>
+  lineItems: LineItemLike[]
 }
 
 export function ProjectFinancialSummary({ lineItems }: ProjectFinancialSummaryProps) {
-  const subtotal = calcSubtotal(lineItems)
+  const subtotal = calcSubtotalFromPrecio(
+    lineItems.map(li => ({ precio_venta: Number(li.precio_venta), cantidad: li.cantidad }))
+  )
   const iva = calcIVA(subtotal)
   const total = calcTotal(subtotal)
-  const totalCosto = calcTotalCostoProyecto(lineItems)
-  // Gross profit excludes IVA — subtotal - totalCosto (PART-07)
+
+  // Total cost = sum of all cost rows × cantidad per line item
+  const totalCosto = lineItems.reduce(
+    (sum, li) =>
+      sum + (li.line_item_costs ?? []).reduce((s, c) => s + Number(c.costo), 0) * li.cantidad,
+    0
+  )
+
+  // Gross profit excludes IVA — subtotal - totalCosto
   const utilidad = calcUtilidad(subtotal, totalCosto)
 
   return (

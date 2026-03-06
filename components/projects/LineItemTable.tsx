@@ -1,8 +1,8 @@
 'use client'
 
 import { LineItem } from '@/lib/types'
-import { calcPrecioVenta, calcTotalVenta } from '@/lib/calculations'
-import { formatMXN, margenToPercent } from '@/lib/formatters'
+import { calcMargenFromPrecio } from '@/lib/calculations'
+import { formatMXN } from '@/lib/formatters'
 import { deleteLineItemAction } from '@/lib/actions/line-items'
 import { LineItemForm } from '@/components/projects/LineItemForm'
 
@@ -29,21 +29,24 @@ export function LineItemTable({ lineItems, suppliers, projectId }: LineItemTable
       <table className="w-full min-w-[640px] text-sm">
         <thead className="bg-muted/50">
           <tr>
-            <th className="px-3 py-2 text-left font-medium">Descripción</th>
+            <th className="px-3 py-2 text-left font-medium">Descripcion</th>
             <th className="hidden sm:table-cell px-3 py-2 text-left font-medium">Referencia</th>
             <th className="px-3 py-2 text-right font-medium">Qty</th>
-            <th className="px-3 py-2 text-right font-medium">Costo Unit.</th>
-            <th className="px-3 py-2 text-right font-medium">Margen</th>
             <th className="px-3 py-2 text-right font-medium">Precio Venta</th>
+            <th className="px-3 py-2 text-right font-medium">Total Costo</th>
+            <th className="px-3 py-2 text-right font-medium">Margen</th>
             <th className="px-3 py-2 text-right font-medium">Total Venta</th>
             <th className="px-3 py-2 text-center font-medium">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {lineItems.map((item) => {
-            const precioVenta = calcPrecioVenta(item.costo_proveedor, item.margen)
-            const totalVenta = calcTotalVenta(precioVenta, item.cantidad)
-
+            const costs = item.line_item_costs ?? []
+            const totalCostoUnitario = costs.reduce((sum, c) => sum + Number(c.costo), 0)
+            const totalCosto = totalCostoUnitario * item.cantidad
+            const margenDecimal = calcMargenFromPrecio(item.precio_venta, totalCostoUnitario)
+            const margenDisplay = (margenDecimal * 100).toFixed(1)
+            const totalVenta = item.precio_venta * item.cantidad
 
             return (
               <tr key={item.id} className="border-t hover:bg-muted/30 transition-colors">
@@ -52,9 +55,9 @@ export function LineItemTable({ lineItems, suppliers, projectId }: LineItemTable
                   {item.referencia ?? '—'}
                 </td>
                 <td className="px-3 py-2 text-right">{item.cantidad}</td>
-                <td className="px-3 py-2 text-right">{formatMXN(item.costo_proveedor)}</td>
-                <td className="px-3 py-2 text-right">{margenToPercent(item.margen)}%</td>
-                <td className="px-3 py-2 text-right">{formatMXN(precioVenta)}</td>
+                <td className="px-3 py-2 text-right">{formatMXN(item.precio_venta)}</td>
+                <td className="px-3 py-2 text-right">{formatMXN(totalCosto)}</td>
+                <td className="px-3 py-2 text-right">{margenDisplay}%</td>
                 <td className="px-3 py-2 text-right font-medium">{formatMXN(totalVenta)}</td>
                 <td className="px-3 py-2">
                   <div className="flex items-center justify-center gap-2">
@@ -70,7 +73,7 @@ export function LineItemTable({ lineItems, suppliers, projectId }: LineItemTable
                         type="submit"
                         className="text-destructive text-xs hover:underline"
                         onClick={(e) => {
-                          if (!confirm('¿Eliminar esta partida?')) e.preventDefault()
+                          if (!confirm('Eliminar esta partida?')) e.preventDefault()
                         }}
                       >
                         Eliminar
