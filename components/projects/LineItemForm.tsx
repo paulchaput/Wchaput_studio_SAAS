@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 
 import { LineItem } from '@/lib/types'
 import { calcMargenFromPrecio, calcTotalCostoFromCosts } from '@/lib/calculations'
@@ -35,7 +36,6 @@ import {
   deleteLineItemCostAction,
 } from '@/lib/actions/line-items'
 
-// Client-side validation schema — precio_venta as direct input
 const formSchema = z.object({
   descripcion: z.string().min(1, 'La descripcion es requerida'),
   referencia: z.string().optional(),
@@ -56,7 +56,6 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
   const [open, setOpen] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
 
-  // State for the add-cost row sub-panel
   const [newCostSupplierId, setNewCostSupplierId] = useState<string>('')
   const [newCostAmount, setNewCostAmount] = useState<string>('')
   const [costError, setCostError] = useState<string | null>(null)
@@ -85,16 +84,49 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
     defaultValues,
   })
 
-  // Compute margin from current cost rows (read-only display)
   const precioVenta = form.watch('precio_venta') ?? 0
   const existingCosts = lineItem?.line_item_costs ?? []
   const totalCostoUnitario = calcTotalCostoFromCosts(existingCosts)
   const margenDecimal = calcMargenFromPrecio(Number(precioVenta), totalCostoUnitario)
-  const margenDisplay = (margenDecimal * 100).toFixed(1)
+  const margenPct = (margenDecimal * 100).toFixed(1)
+  const margenColor =
+    margenDecimal >= 0.4
+      ? 'text-green-600'
+      : margenDecimal >= 0.2
+      ? 'text-amber-600'
+      : 'text-red-600'
+
+  // Editable margen state — user can type a target margin% to back-calculate precio_venta
+  const [isEditingMargen, setIsEditingMargen] = useState(false)
+  const [margenInputValue, setMargenInputValue] = useState('')
+
+  function handleMargenClick() {
+    setMargenInputValue(margenPct)
+    setIsEditingMargen(true)
+  }
+
+  function handleMargenCommit() {
+    setIsEditingMargen(false)
+    const targetMargen = parseFloat(margenInputValue)
+    if (isNaN(targetMargen) || targetMargen >= 100) return
+    if (totalCostoUnitario <= 0) return
+    // precio_venta = totalCosto / (1 - margen/100)
+    const newPrecio = totalCostoUnitario / (1 - targetMargen / 100)
+    form.setValue('precio_venta', Math.round(newPrecio * 100) / 100)
+  }
+
+  function handleMargenKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleMargenCommit()
+    }
+    if (e.key === 'Escape') {
+      setIsEditingMargen(false)
+    }
+  }
 
   async function onSubmit(values: FormValues) {
     setServerError(null)
-
     const formData = new FormData()
     formData.append('project_id', projectId)
     formData.append('descripcion', values.descripcion)
@@ -103,19 +135,14 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
     formData.append('cantidad', String(values.cantidad))
     formData.append('precio_venta', String(values.precio_venta))
 
-    let result: { error?: string }
-
-    if (isEditMode && lineItem) {
-      result = await updateLineItemAction(lineItem.id, formData)
-    } else {
-      result = await createLineItemAction(formData)
-    }
+    const result = isEditMode && lineItem
+      ? await updateLineItemAction(lineItem.id, formData)
+      : await createLineItemAction(formData)
 
     if (result.error) {
       setServerError(result.error)
       return
     }
-
     setOpen(false)
     form.reset(defaultValues)
     setServerError(null)
@@ -139,7 +166,6 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
     fd.append('line_item_id', lineItem.id)
     fd.append('supplier_id', newCostSupplierId)
     fd.append('costo', String(costoNum))
-
     const result = await createLineItemCostAction(fd)
     setIsAddingCost(false)
 
@@ -147,8 +173,6 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
       setCostError(result.error)
       return
     }
-
-    // Reset add-cost form
     setNewCostSupplierId('')
     setNewCostAmount('')
   }
@@ -192,7 +216,7 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {/* Descripcion */}
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <Label htmlFor="descripcion">
               Descripcion <span className="text-destructive">*</span>
             </Label>
@@ -202,169 +226,250 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
               {...form.register('descripcion')}
             />
             {form.formState.errors.descripcion && (
-              <p className="text-sm text-destructive">
+              <p className="text-xs text-destructive">
                 {form.formState.errors.descripcion.message}
               </p>
             )}
           </div>
 
-          {/* Referencia */}
-          <div className="space-y-1">
-            <Label htmlFor="referencia">Referencia</Label>
-            <Input
-              id="referencia"
-              placeholder="Ej: REF-001"
-              {...form.register('referencia')}
-            />
+          {/* Referencia + Dimensiones */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="referencia">Referencia</Label>
+              <Input
+                id="referencia"
+                placeholder="REF-001"
+                {...form.register('referencia')}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="dimensiones">Dimensiones</Label>
+              <Input
+                id="dimensiones"
+                placeholder="120x60x75 cm"
+                {...form.register('dimensiones')}
+              />
+            </div>
           </div>
 
-          {/* Dimensiones */}
-          <div className="space-y-1">
-            <Label htmlFor="dimensiones">Dimensiones</Label>
-            <Input
-              id="dimensiones"
-              placeholder="Ej: 120x60x75 cm"
-              {...form.register('dimensiones')}
-            />
+          {/* Cantidad + Precio de Venta — related fields side by side */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="cantidad">
+                Cantidad <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="cantidad"
+                type="number"
+                min={1}
+                step={1}
+                {...form.register('cantidad')}
+              />
+              {form.formState.errors.cantidad && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.cantidad.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="precio_venta">
+                Precio de Venta <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground text-sm">
+                  $
+                </span>
+                <Input
+                  id="precio_venta"
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  placeholder="0.00"
+                  className="pl-6"
+                  {...form.register('precio_venta')}
+                />
+              </div>
+              {form.formState.errors.precio_venta && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.precio_venta.message}
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* Cantidad */}
-          <div className="space-y-1">
-            <Label htmlFor="cantidad">
-              Cantidad <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="cantidad"
-              type="number"
-              min={1}
-              step={1}
-              {...form.register('cantidad')}
-            />
-            {form.formState.errors.cantidad && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.cantidad.message}
-              </p>
-            )}
-          </div>
-
-          {/* Precio de Venta */}
-          <div className="space-y-1">
-            <Label htmlFor="precio_venta">
-              Precio de Venta (MXN) <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="precio_venta"
-              type="number"
-              min={0}
-              step={0.01}
-              placeholder="0.00"
-              {...form.register('precio_venta')}
-            />
-            {form.formState.errors.precio_venta && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.precio_venta.message}
-              </p>
-            )}
-          </div>
-
-          {/* Cost Rows Sub-panel — visible only when editing an existing line item */}
+          {/* Cost Panel — only when editing an existing line item */}
           {isEditMode && lineItem && (
-            <div className="space-y-3 rounded-md border p-3">
-              <h4 className="text-sm font-medium">Costos por Proveedor</h4>
+            <>
+              <Separator />
 
-              {/* Existing cost rows */}
-              {existingCosts.length > 0 ? (
-                <div className="space-y-1.5">
-                  {existingCosts.map((cost) => (
-                    <div
-                      key={cost.id}
-                      className="flex items-center justify-between text-sm"
-                    >
-                      <span className="text-muted-foreground">
-                        {cost.suppliers?.nombre ?? 'Proveedor desconocido'}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span>{formatMXN(Number(cost.costo))}</span>
-                        <form
-                          action={async (fd) => {
-                            await deleteLineItemCostAction(fd)
-                          }}
-                        >
-                          <input type="hidden" name="costRowId" value={cost.id} />
-                          <input type="hidden" name="lineItemId" value={lineItem.id} />
-                          <button
-                            type="submit"
-                            className="text-destructive hover:text-destructive/80 transition-colors"
-                            aria-label="Eliminar costo"
-                            onClick={(e) => {
-                              if (!confirm('Eliminar este costo?')) e.preventDefault()
+              <div className="space-y-3">
+                {/* Section header */}
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold">Costos por Proveedor</h4>
+                  {existingCosts.length > 0 && (
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                      {existingCosts.length} {existingCosts.length === 1 ? 'costo' : 'costos'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Existing cost rows */}
+                {existingCosts.length > 0 ? (
+                  <div className="divide-y rounded-md border">
+                    {existingCosts.map((cost) => (
+                      <div
+                        key={cost.id}
+                        className="flex items-center justify-between px-3 py-2"
+                      >
+                        <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
+                          {cost.suppliers?.nombre ?? 'Proveedor desconocido'}
+                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium tabular-nums">
+                            {formatMXN(Number(cost.costo))}
+                          </span>
+                          <form
+                            action={async (fd) => {
+                              await deleteLineItemCostAction(fd)
                             }}
                           >
-                            <TrashIcon className="size-3.5" />
-                          </button>
-                        </form>
+                            <input type="hidden" name="costRowId" value={cost.id} />
+                            <input type="hidden" name="lineItemId" value={lineItem.id} />
+                            <button
+                              type="submit"
+                              className="text-muted-foreground hover:text-destructive transition-colors"
+                              aria-label="Eliminar costo"
+                              onClick={(e) => {
+                                if (!confirm('¿Eliminar este costo?')) e.preventDefault()
+                              }}
+                            >
+                              <TrashIcon className="size-3.5" />
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground rounded-md border border-dashed px-3 py-4 text-center">
+                    Sin costos registrados. Agrega el costo de cada proveedor abajo.
+                  </p>
+                )}
+
+                {/* Add cost row */}
+                <div className="rounded-md bg-muted/50 p-3 space-y-3">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Agregar costo
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Proveedor</Label>
+                      <Select
+                        value={newCostSupplierId}
+                        onValueChange={setNewCostSupplierId}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {suppliers.map((s) => (
+                            <SelectItem key={s.id} value={s.id}>
+                              {s.nombre}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Costo unitario</Label>
+                      <div className="relative">
+                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground text-sm">
+                          $
+                        </span>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          placeholder="0.00"
+                          className="pl-6"
+                          value={newCostAmount}
+                          onChange={(e) => setNewCostAmount(e.target.value)}
+                        />
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground">Sin costos registrados.</p>
-              )}
-
-              {/* Add cost row */}
-              <div className="space-y-2 pt-1 border-t">
-                <p className="text-xs text-muted-foreground">Agregar costo</p>
-                <div className="flex gap-2">
-                  <Select
-                    value={newCostSupplierId}
-                    onValueChange={setNewCostSupplierId}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Proveedor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {suppliers.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    placeholder="0.00"
-                    value={newCostAmount}
-                    onChange={(e) => setNewCostAmount(e.target.value)}
-                    className="w-28"
-                  />
+                  </div>
                   <Button
                     type="button"
                     size="sm"
                     variant="outline"
+                    className="w-full"
                     onClick={handleAddCost}
                     disabled={isAddingCost}
                   >
+                    <PlusIcon className="size-3.5 mr-1" />
                     {isAddingCost ? 'Agregando...' : 'Agregar Costo'}
                   </Button>
+                  {costError && (
+                    <p className="text-xs text-destructive">{costError}</p>
+                  )}
                 </div>
-                {costError && (
-                  <p className="text-sm text-destructive">{costError}</p>
-                )}
-              </div>
 
-              {/* Computed margin display */}
-              <div className="rounded-md bg-muted px-3 py-2 text-sm">
-                <span className="text-muted-foreground">Costo total unitario: </span>
-                <span className="font-medium">{formatMXN(totalCostoUnitario)}</span>
-                <span className="text-muted-foreground ml-3">Margen: </span>
-                <span className="font-medium">{margenDisplay}%</span>
+                {/* Financial summary — Precio | Costo | Margen */}
+                <div className="grid grid-cols-3 divide-x rounded-md border text-center">
+                  <div className="px-3 py-2">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+                      Precio venta
+                    </p>
+                    <p className="text-sm font-semibold tabular-nums">
+                      {formatMXN(Number(precioVenta))}
+                    </p>
+                  </div>
+                  <div className="px-3 py-2">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+                      Costo total
+                    </p>
+                    <p className="text-sm font-semibold tabular-nums">
+                      {formatMXN(totalCostoUnitario)}
+                    </p>
+                  </div>
+                  <div
+                    className="px-3 py-2 cursor-pointer group"
+                    onClick={!isEditingMargen ? handleMargenClick : undefined}
+                    title="Click para editar margen"
+                  >
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+                      Margen
+                      <span className="ml-1 opacity-0 group-hover:opacity-60 text-[9px] normal-case tracking-normal">
+                        editar
+                      </span>
+                    </p>
+                    {isEditingMargen ? (
+                      <div className="flex items-center gap-0.5">
+                        <input
+                          type="number"
+                          min={0}
+                          max={99}
+                          step={0.1}
+                          autoFocus
+                          value={margenInputValue}
+                          onChange={(e) => setMargenInputValue(e.target.value)}
+                          onBlur={handleMargenCommit}
+                          onKeyDown={handleMargenKeyDown}
+                          className="w-14 rounded border bg-background px-1.5 py-0.5 text-sm font-bold text-center tabular-nums focus:outline-none focus:ring-1 focus:ring-ring"
+                        />
+                        <span className="text-sm font-bold text-muted-foreground">%</span>
+                      </div>
+                    ) : (
+                      <p className={`text-sm font-bold tabular-nums ${margenColor}`}>
+                        {margenPct}%
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            </>
           )}
 
-          {/* Server Error */}
           {serverError && (
             <p className="text-sm text-destructive">{serverError}</p>
           )}

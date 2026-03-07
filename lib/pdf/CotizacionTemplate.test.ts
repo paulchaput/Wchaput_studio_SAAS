@@ -26,6 +26,7 @@ describe('QuoteLineItem — data safety (QUOT-03)', () => {
       subtotal: 10000,
       iva: 1600,
       granTotal: 11600,
+      includeIva: true,
       anticipo: 8120,
       saldo: 3480,
       lineItems: [

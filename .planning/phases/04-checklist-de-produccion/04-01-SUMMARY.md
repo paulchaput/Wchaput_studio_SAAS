@@ -88,7 +88,7 @@ Each task was committed atomically:
 1. **Task 1: CHECKLIST_SEED constant, ChecklistTask types, and unit test scaffold** - `65c6a65` (feat)
 2. **Task 2: getChecklistTasks query, updateChecklistTaskAction, and modified createProjectAction with backfill migration** - `cac41ca` (feat)
 
-**Plan metadata:** (docs commit follows)
+**Plan metadata:** `7fdccee` (docs: complete checklist data layer plan)
 
 _Note: Both tasks used TDD pattern (RED test run, then GREEN implementation)_
 

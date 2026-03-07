@@ -60,7 +60,7 @@ export async function getProjectForQuote(id: string): Promise<QuoteProjectData |
     .from('projects')
     .select(`
       id, nombre, cliente_nombre, numero_cotizacion,
-      fecha_cotizacion, salesperson,
+      fecha_cotizacion, salesperson, include_iva,
       line_items (
         id, descripcion, referencia, cantidad,
         precio_venta
@@ -83,8 +83,9 @@ export async function getProjectForQuote(id: string): Promise<QuoteProjectData |
   const subtotal = calcSubtotalFromPrecio(
     (data.line_items ?? []).map(li => ({ precio_venta: Number(li.precio_venta), cantidad: li.cantidad }))
   )
-  const iva = calcIVA(subtotal)
-  const granTotal = calcTotal(subtotal)
+  const includeIva = data.include_iva ?? true
+  const iva = includeIva ? calcIVA(subtotal) : 0
+  const granTotal = includeIva ? calcTotal(subtotal) : subtotal
 
   return {
     id: data.id,
@@ -96,6 +97,7 @@ export async function getProjectForQuote(id: string): Promise<QuoteProjectData |
     subtotal,
     iva,
     granTotal,
+    includeIva,
     anticipo: calcAnticipo(granTotal),
     saldo: calcSaldo(granTotal),
     lineItems,

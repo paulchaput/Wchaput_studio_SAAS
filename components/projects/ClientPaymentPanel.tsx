@@ -1,32 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { CheckCircle2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 import type { PaymentClient } from '@/lib/types'
 import {
@@ -41,20 +27,130 @@ import {
   deleteClientPaymentAction,
 } from '@/lib/actions/payments-client'
 
-// Client-side form validation schema
-const formSchema = z.object({
-  tipo: z.enum(['anticipo', 'finiquito', 'otro']),
-  monto: z.coerce.number().positive('El monto debe ser mayor a 0'),
-  fecha: z.string().min(1, 'La fecha es requerida'),
-  notas: z.string().optional(),
-})
-
-type FormValues = z.infer<typeof formSchema>
-
 interface ClientPaymentPanelProps {
   projectId: string
-  granTotal: number       // computed server-side from calcTotal(calcSubtotal(lineItems))
-  payments: PaymentClient[] // monto already coerced to number by getClientPayments()
+  granTotal: number
+  payments: PaymentClient[]
+}
+
+interface QuickPayDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  projectId: string
+  tipo: 'anticipo' | 'finiquito'
+  stageLabel: string
+  defaultAmount: number
+}
+
+function QuickPayDialog({
+  open,
+  onOpenChange,
+  projectId,
+  tipo,
+  stageLabel,
+  defaultAmount,
+}: QuickPayDialogProps) {
+  const today = new Date().toISOString().split('T')[0]
+  const [monto, setMonto] = useState(defaultAmount.toFixed(2))
+  const [fecha, setFecha] = useState(today)
+  const [notas, setNotas] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    const montoNum = parseFloat(monto)
+    if (isNaN(montoNum) || montoNum <= 0) {
+      setError('El monto debe ser mayor a 0')
+      return
+    }
+    if (!fecha) {
+      setError('La fecha es requerida')
+      return
+    }
+    setLoading(true)
+    const fd = new FormData()
+    fd.append('project_id', projectId)
+    fd.append('tipo', tipo)
+    fd.append('monto', String(montoNum))
+    fd.append('fecha', fecha)
+    fd.append('notas', notas)
+    const result = await createClientPaymentAction(fd)
+    setLoading(false)
+    if (result.error) {
+      setError(result.error)
+      return
+    }
+    onOpenChange(false)
+  }
+
+  function handleClose(isOpen: boolean) {
+    if (!isOpen) {
+      setError(null)
+      setMonto(defaultAmount.toFixed(2))
+      setFecha(today)
+      setNotas('')
+    }
+    onOpenChange(isOpen)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{stageLabel}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="cp-monto">Monto (MXN)</Label>
+            <div className="relative">
+              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground text-sm">
+                $
+              </span>
+              <Input
+                id="cp-monto"
+                type="number"
+                min={0.01}
+                step={0.01}
+                className="pl-6"
+                value={monto}
+                onChange={(e) => setMonto(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="cp-fecha">Fecha de Pago</Label>
+            <Input
+              id="cp-fecha"
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="cp-notas">Notas (opcional)</Label>
+            <Textarea
+              id="cp-notas"
+              placeholder="Ej: Transferencia BBVA"
+              rows={2}
+              value={notas}
+              onChange={(e) => setNotas(e.target.value)}
+            />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => handleClose(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Registrando...' : 'Registrar Pago'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 export function ClientPaymentPanel({
@@ -62,258 +158,218 @@ export function ClientPaymentPanel({
   granTotal,
   payments,
 }: ClientPaymentPanelProps) {
-  const [open, setOpen] = useState(false)
-  const [serverError, setServerError] = useState<string | null>(null)
+  const [activeStage, setActiveStage] = useState<'anticipo' | 'finiquito' | null>(null)
 
   const anticipoEsperado = calcAnticipo(granTotal)
-  const saldoEsperado = calcSaldo(granTotal)
+  const finiquitoEsperado = calcSaldo(granTotal)
   const totalCobrado = calcTotalPagadoCliente(payments)
   const saldoPendiente = calcSaldoPendienteCliente(granTotal, totalCobrado)
 
-  const defaultValues: FormValues = {
-    tipo: 'anticipo',
-    monto: 0,
-    fecha: '',
-    notas: '',
-  }
+  const sortedPayments = [...payments].sort(
+    (a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime()
+  )
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues,
-  })
+  // Stage status based on cumulative collected
+  const anticipoPaid = totalCobrado >= anticipoEsperado - 0.01
+  const finiquitoPaid = totalCobrado >= granTotal - 0.01
 
-  async function onSubmit(values: FormValues) {
-    setServerError(null)
+  const anticipoPayment = anticipoPaid
+    ? sortedPayments.find((p) => p.tipo === 'anticipo') ?? sortedPayments[0] ?? null
+    : null
+  const finiquitoPayment = finiquitoPaid
+    ? sortedPayments.find((p) => p.tipo === 'finiquito') ?? sortedPayments[sortedPayments.length - 1] ?? null
+    : null
 
-    const formData = new FormData()
-    formData.append('project_id', projectId)
-    formData.append('tipo', values.tipo)
-    formData.append('monto', String(values.monto))
-    formData.append('fecha', values.fecha)
-    formData.append('notas', values.notas ?? '')
-
-    const result = await createClientPaymentAction(formData)
-
-    if (result.error) {
-      setServerError(result.error)
-      return
-    }
-
-    setOpen(false)
-    form.reset(defaultValues)
-    setServerError(null)
-  }
-
-  function handleOpenChange(isOpen: boolean) {
-    setOpen(isOpen)
-    if (!isOpen) {
-      form.reset(defaultValues)
-      setServerError(null)
-    }
+  if (granTotal <= 0) {
+    return (
+      <p className="text-sm text-muted-foreground rounded-md border border-dashed px-4 py-6 text-center">
+        Agrega partidas al proyecto para ver el resumen de cobros.
+      </p>
+    )
   }
 
   return (
     <div className="space-y-4">
-      {/* Summary Card */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            Resumen de Pagos del Cliente
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Anticipo Esperado (70%)</span>
-            <span>{formatMXN(anticipoEsperado)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Finiquito Esperado (30%)</span>
-            <span>{formatMXN(saldoEsperado)}</span>
-          </div>
-
-          <Separator />
-
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Total Cobrado</span>
-            <span className="font-medium">{formatMXN(totalCobrado)}</span>
-          </div>
-          <div className="flex justify-between font-semibold">
-            <span>Saldo Pendiente</span>
-            {saldoPendiente <= 0 ? (
-              <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                <CheckCircle2 className="size-4" />
-                {formatMXN(saldoPendiente)}
-              </span>
-            ) : (
-              <span>{formatMXN(saldoPendiente)}</span>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Register Payment Button */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {payments.length === 0
-            ? 'No hay pagos registrados'
-            : `${payments.length} pago${payments.length === 1 ? '' : 's'} registrado${payments.length === 1 ? '' : 's'}`}
-        </p>
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-          <DialogTrigger asChild>
-            <Button type="button" size="sm">
-              Registrar Pago
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Registrar Pago del Cliente</DialogTitle>
-            </DialogHeader>
-
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Tipo */}
-              <div className="space-y-1">
-                <Label>
-                  Tipo de Pago <span className="text-destructive">*</span>
-                </Label>
-                <Select
-                  defaultValue={defaultValues.tipo}
-                  onValueChange={(val) =>
-                    form.setValue('tipo', val as 'anticipo' | 'finiquito' | 'otro')
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccionar tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="anticipo">Anticipo</SelectItem>
-                    <SelectItem value="finiquito">Finiquito (Saldo Final)</SelectItem>
-                    <SelectItem value="otro">Otro</SelectItem>
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.tipo && (
-                  <p className="text-sm text-destructive">
-                    {form.formState.errors.tipo.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Monto */}
-              <div className="space-y-1">
-                <Label htmlFor="monto">
-                  Monto (MXN) <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="monto"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder="0.00"
-                  {...form.register('monto')}
-                />
-                {form.formState.errors.monto && (
-                  <p className="text-sm text-destructive">
-                    {form.formState.errors.monto.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Fecha */}
-              <div className="space-y-1">
-                <Label htmlFor="fecha">
-                  Fecha de Pago <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="fecha"
-                  type="date"
-                  {...form.register('fecha')}
-                />
-                {form.formState.errors.fecha && (
-                  <p className="text-sm text-destructive">
-                    {form.formState.errors.fecha.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Notas */}
-              <div className="space-y-1">
-                <Label htmlFor="notas">Notas</Label>
-                <Textarea
-                  id="notas"
-                  placeholder="Notas opcionales..."
-                  rows={3}
-                  {...form.register('notas')}
-                />
-              </div>
-
-              {/* Server Error */}
-              {serverError && (
-                <p className="text-sm text-destructive">{serverError}</p>
-              )}
-
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleOpenChange(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? 'Registrando...' : 'Registrar Pago'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+      {/* Summary totals */}
+      <div className="grid grid-cols-3 divide-x rounded-md border text-center">
+        <div className="px-3 py-2">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+            Total del proyecto
+          </p>
+          <p className="text-sm font-semibold tabular-nums">{formatMXN(granTotal)}</p>
+        </div>
+        <div className="px-3 py-2">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+            Cobrado
+          </p>
+          <p className="text-sm font-semibold tabular-nums">{formatMXN(totalCobrado)}</p>
+        </div>
+        <div className="px-3 py-2">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+            Pendiente
+          </p>
+          <p className={`text-sm font-bold tabular-nums ${saldoPendiente <= 0.01 ? 'text-green-600' : ''}`}>
+            {formatMXN(saldoPendiente)}
+          </p>
+        </div>
       </div>
 
-      {/* Payment History */}
+      {/* Payment flow */}
+      <div className="rounded-md border overflow-hidden">
+        {/* Anticipo */}
+        <StageRow
+          label="Anticipo"
+          pct={70}
+          amount={anticipoEsperado}
+          paid={anticipoPaid}
+          payment={anticipoPayment}
+          locked={false}
+          onRegister={() => setActiveStage('anticipo')}
+        />
+        <div className="border-t" />
+        {/* Finiquito */}
+        <StageRow
+          label="Finiquito"
+          pct={30}
+          amount={finiquitoEsperado}
+          paid={finiquitoPaid}
+          payment={finiquitoPayment}
+          locked={!anticipoPaid}
+          onRegister={() => setActiveStage('finiquito')}
+        />
+      </div>
+
+      {/* Payment history */}
       {payments.length > 0 && (
         <div className="rounded-md border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Fecha</th>
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Tipo</th>
-                <th className="text-right px-3 py-2 font-medium text-muted-foreground">Monto</th>
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Notas</th>
-                <th className="px-3 py-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {payments.map((payment) => (
-                <tr key={payment.id} className="border-b last:border-0 hover:bg-muted/30">
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {formatFecha(payment.fecha)}
-                  </td>
-                  <td className="px-3 py-2 capitalize">
-                    {payment.tipo === 'finiquito' ? 'Finiquito' : payment.tipo.charAt(0).toUpperCase() + payment.tipo.slice(1)}
-                  </td>
-                  <td className="px-3 py-2 text-right whitespace-nowrap">
-                    {formatMXN(payment.monto)}
-                  </td>
-                  <td className="px-3 py-2 text-muted-foreground max-w-[200px] truncate">
-                    {payment.notas ?? '—'}
-                  </td>
-                  <td className="px-3 py-2">
-                    <form action={async (fd) => { await deleteClientPaymentAction(fd) }}>
-                      <input type="hidden" name="paymentId" value={payment.id} />
-                      <input type="hidden" name="projectId" value={projectId} />
-                      <button
-                        type="submit"
-                        className="text-xs text-destructive hover:text-destructive/80 transition-colors"
-                      >
-                        Eliminar
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="px-4 py-2 bg-muted/30 border-b">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+              Historial de pagos
+            </p>
+          </div>
+          <div className="divide-y">
+            {sortedPayments.map((p) => (
+              <div key={p.id} className="flex items-center justify-between px-4 py-2 text-sm">
+                <span className="text-muted-foreground w-24 flex-shrink-0">
+                  {formatFecha(p.fecha)}
+                </span>
+                <span className="capitalize flex-1 text-muted-foreground">
+                  {p.tipo === 'finiquito' ? 'Finiquito' : p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)}
+                </span>
+                <span className="tabular-nums font-medium">{formatMXN(p.monto)}</span>
+                {p.notas && (
+                  <span className="text-muted-foreground ml-4 max-w-[160px] truncate text-xs">
+                    {p.notas}
+                  </span>
+                )}
+                <form
+                  className="ml-4"
+                  action={async (fd) => { await deleteClientPaymentAction(fd) }}
+                >
+                  <input type="hidden" name="paymentId" value={p.id} />
+                  <input type="hidden" name="projectId" value={projectId} />
+                  <button
+                    type="submit"
+                    className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    Eliminar
+                  </button>
+                </form>
+              </div>
+            ))}
+          </div>
         </div>
       )}
+
+      {/* Quick pay dialog */}
+      {activeStage && (
+        <QuickPayDialog
+          open={true}
+          onOpenChange={(isOpen) => { if (!isOpen) setActiveStage(null) }}
+          projectId={projectId}
+          tipo={activeStage}
+          stageLabel={activeStage === 'anticipo' ? 'Anticipo (70%)' : 'Finiquito (30%)'}
+          defaultAmount={activeStage === 'anticipo' ? anticipoEsperado : finiquitoEsperado}
+        />
+      )}
+    </div>
+  )
+}
+
+// ─── Stage row ───────────────────────────────────────────────────────────────
+
+interface StageRowProps {
+  label: string
+  pct: number
+  amount: number
+  paid: boolean
+  payment: PaymentClient | null
+  locked: boolean
+  onRegister: () => void
+}
+
+function StageRow({ label, pct, amount, paid, payment, locked, onRegister }: StageRowProps) {
+  return (
+    <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center gap-3">
+        <div
+          className={`size-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+            paid
+              ? 'bg-green-500 border-green-500'
+              : locked
+              ? 'border-muted-foreground/30'
+              : 'border-muted-foreground/50'
+          }`}
+        >
+          {paid && (
+            <svg className="size-3 text-white" viewBox="0 0 12 12" fill="none">
+              <path
+                d="M2 6l3 3 5-5"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
+        </div>
+
+        <div>
+          <p className={`text-sm font-medium ${locked && !paid ? 'text-muted-foreground' : ''}`}>
+            {label}{' '}
+            <span className="text-xs font-normal text-muted-foreground">{pct}%</span>
+          </p>
+          {paid && payment && (
+            <p className="text-xs text-muted-foreground">
+              Cobrado el {formatFecha(payment.fecha)}
+            </p>
+          )}
+          {locked && !paid && (
+            <p className="text-xs text-muted-foreground">
+              Disponible al cobrar el anticipo
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span
+          className={`text-sm tabular-nums font-medium ${locked && !paid ? 'text-muted-foreground' : ''}`}
+        >
+          {formatMXN(amount)}
+        </span>
+        {!paid && !locked && (
+          <Button type="button" size="sm" variant="outline" onClick={onRegister}>
+            Registrar Pago
+          </Button>
+        )}
+        {paid && (
+          <span className="text-xs text-green-600 font-medium">Cobrado</span>
+        )}
+        {locked && !paid && (
+          <span className="text-xs text-muted-foreground/60">Pendiente</span>
+        )}
+      </div>
     </div>
   )
 }

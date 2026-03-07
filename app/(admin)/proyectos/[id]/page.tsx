@@ -17,6 +17,7 @@ import { ProjectFinancialSummary } from '@/components/projects/ProjectFinancialS
 import { ClientPaymentPanel } from '@/components/projects/ClientPaymentPanel'
 import { SupplierPaymentPanel } from '@/components/projects/SupplierPaymentPanel'
 import { ChecklistPanel } from '@/components/projects/ChecklistPanel'
+import { PdfPreviewModal } from '@/components/projects/PdfPreviewModal'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 
@@ -49,9 +50,11 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
   if (!project) notFound()
 
   const lineItems = (project.line_items ?? []) as LineItem[]
-  const granTotal = calcTotal(calcSubtotalFromPrecio(
+  const includeIva = project.include_iva ?? true
+  const subtotal = calcSubtotalFromPrecio(
     lineItems.map((li: LineItem) => ({ precio_venta: Number(li.precio_venta), cantidad: li.cantidad }))
-  ))
+  )
+  const granTotal = includeIva ? calcTotal(subtotal) : subtotal
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
@@ -108,7 +111,7 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
       </div>
 
       {/* Financial Summary */}
-      <ProjectFinancialSummary lineItems={lineItems} />
+      <ProjectFinancialSummary lineItems={lineItems} includeIva={includeIva} />
 
       <Separator />
 
@@ -164,13 +167,11 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Documentos</h2>
         <div className="flex flex-wrap gap-3">
-          <a
-            href={`/proyectos/${id}/cotizacion`}
-            className="inline-flex items-center gap-2 text-sm font-medium border px-3 py-1.5 rounded hover:bg-muted transition-colors"
-            download
-          >
-            Descargar Cotizacion PDF
-          </a>
+          <PdfPreviewModal
+            label="Cotización PDF"
+            previewUrl={`/proyectos/${id}/cotizacion?preview=1`}
+            downloadUrl={`/proyectos/${id}/cotizacion`}
+          />
           {isAdmin && (() => {
             // Derive unique suppliers from line_item_costs (multi-supplier model)
             const uniqueSuppliers = lineItems
@@ -185,14 +186,12 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
             return (
               <>
                 {uniqueSuppliers.map((s) => (
-                  <a
+                  <PdfPreviewModal
                     key={s.id}
-                    href={`/proyectos/${id}/orden-compra?supplier_id=${s.id}`}
-                    className="inline-flex items-center gap-2 text-sm font-medium border px-3 py-1.5 rounded hover:bg-muted transition-colors"
-                    download
-                  >
-                    OC — {s.nombre}
-                  </a>
+                    label={`OC — ${s.nombre}`}
+                    previewUrl={`/proyectos/${id}/orden-compra?supplier_id=${s.id}&preview=1`}
+                    downloadUrl={`/proyectos/${id}/orden-compra?supplier_id=${s.id}`}
+                  />
                 ))}
               </>
             )

@@ -29,6 +29,7 @@ export interface QuoteProjectData {
   subtotal: number
   iva: number
   granTotal: number
+  includeIva: boolean
   anticipo: number
   saldo: number
   lineItems: QuoteLineItem[]
@@ -102,14 +103,23 @@ export function CotizacionTemplate({ project }: CotizacionTemplateProps) {
 
         {/* Totals Block */}
         <View style={styles.totalsSection}>
-          <View style={styles.totalsRow}>
-            <Text style={styles.totalsLabel}>Subtotal</Text>
-            <Text style={styles.totalsValue}>{formatMXN(project.subtotal)}</Text>
-          </View>
-          <View style={styles.totalsRow}>
-            <Text style={styles.totalsLabel}>IVA 16%</Text>
-            <Text style={styles.totalsValue}>{formatMXN(project.iva)}</Text>
-          </View>
+          {project.includeIva ? (
+            <>
+              <View style={styles.totalsRow}>
+                <Text style={styles.totalsLabel}>Subtotal</Text>
+                <Text style={styles.totalsValue}>{formatMXN(project.subtotal)}</Text>
+              </View>
+              <View style={styles.totalsRow}>
+                <Text style={styles.totalsLabel}>IVA 16%</Text>
+                <Text style={styles.totalsValue}>{formatMXN(project.iva)}</Text>
+              </View>
+            </>
+          ) : (
+            <View style={styles.totalsRow}>
+              <Text style={styles.totalsLabel}>Subtotal</Text>
+              <Text style={styles.totalsValue}>{formatMXN(project.subtotal)}</Text>
+            </View>
+          )}
           <View style={styles.grandTotalRow}>
             <Text style={styles.grandTotalLabel}>TOTAL</Text>
             <Text style={styles.grandTotalValue}>{formatMXN(project.granTotal)}</Text>

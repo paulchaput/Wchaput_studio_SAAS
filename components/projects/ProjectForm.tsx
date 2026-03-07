@@ -15,7 +15,7 @@ import type { Project } from '@/lib/types'
 const projectFormSchema = z.object({
   nombre: z.string().min(1, 'El nombre del proyecto es requerido'),
   cliente_nombre: z.string().min(1, 'El cliente es requerido'),
-  numero_cotizacion: z.string().optional(),
+  numero_cotizacion: z.string().optional(),  // only in edit mode
   fecha_cotizacion: z.string().optional(),
   salesperson: z.string().optional(),
   fecha_entrega_estimada: z.string().optional(),
@@ -31,6 +31,7 @@ interface ProjectFormProps {
 export function ProjectForm({ project }: ProjectFormProps) {
   const isEditMode = !!project
   const [serverError, setServerError] = useState<string | null>(null)
+  const [includeIva, setIncludeIva] = useState(project?.include_iva ?? true)
 
   const {
     register,
@@ -58,6 +59,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
         formData.append(key, value)
       }
     })
+    formData.append('include_iva', String(includeIva))
 
     let result: { error?: string } | undefined
 
@@ -108,16 +110,21 @@ export function ProjectForm({ project }: ProjectFormProps) {
         )}
       </div>
 
-      {/* Número de Cotización */}
-      <div className="space-y-2">
-        <Label htmlFor="numero_cotizacion">Número de Cotización</Label>
-        <Input
-          id="numero_cotizacion"
-          {...register('numero_cotizacion')}
-          placeholder="Ej. COT-2026-001"
-          className="w-full"
-        />
-      </div>
+      {/* Número de Cotización — auto-generated on create, editable on edit */}
+      {isEditMode ? (
+        <div className="space-y-2">
+          <Label htmlFor="numero_cotizacion">Número de Cotización</Label>
+          <Input
+            id="numero_cotizacion"
+            {...register('numero_cotizacion')}
+            className="w-full"
+          />
+        </div>
+      ) : (
+        <div className="rounded-md bg-muted/50 border px-4 py-3 text-sm text-muted-foreground">
+          El número de cotización se genera automáticamente al crear el proyecto.
+        </div>
+      )}
 
       {/* Fecha de Cotización */}
       <div className="space-y-2">
@@ -150,6 +157,31 @@ export function ProjectForm({ project }: ProjectFormProps) {
           {...register('fecha_entrega_estimada')}
           className="w-full"
         />
+      </div>
+
+      {/* IVA Toggle */}
+      <div className="flex items-center justify-between rounded-md border px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Aplica IVA (16%)</p>
+          <p className="text-xs text-muted-foreground">
+            {includeIva ? 'El total incluye IVA — se muestra en la cotización' : 'Sin IVA — pago en efectivo u otro acuerdo'}
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={includeIva}
+          onClick={() => setIncludeIva(!includeIva)}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+            includeIva ? 'bg-primary' : 'bg-muted-foreground/30'
+          }`}
+        >
+          <span
+            className={`inline-block size-4 rounded-full bg-white shadow-sm transition-transform ${
+              includeIva ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
       </div>
 
       {/* Notas Internas */}

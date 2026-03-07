@@ -1,31 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 import type { PaymentSupplier, LineItem } from '@/lib/types'
 import {
@@ -38,21 +25,138 @@ import {
   deleteSupplierPaymentAction,
 } from '@/lib/actions/payments-supplier'
 
-// Client-side form validation schema
-const formSchema = z.object({
-  supplier_id: z.string().uuid('Selecciona un proveedor'),
-  monto: z.coerce.number().positive('El monto debe ser mayor a 0'),
-  fecha: z.string().min(1, 'La fecha es requerida'),
-  notas: z.string().optional(),
-})
-
-type FormValues = z.infer<typeof formSchema>
-
 interface SupplierPaymentPanelProps {
   projectId: string
   lineItems: LineItem[]
-  payments: PaymentSupplier[]  // monto already coerced by getSupplierPayments()
-  suppliers: Array<{ id: string; nombre: string }>  // full list fallback
+  payments: PaymentSupplier[]
+  suppliers: Array<{ id: string; nombre: string }>
+}
+
+interface QuickPayDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  projectId: string
+  supplierId: string
+  supplierNombre: string
+  defaultAmount: number
+  stageLabel: string
+}
+
+function QuickPayDialog({
+  open,
+  onOpenChange,
+  projectId,
+  supplierId,
+  supplierNombre,
+  defaultAmount,
+  stageLabel,
+}: QuickPayDialogProps) {
+  const today = new Date().toISOString().split('T')[0]
+  const [monto, setMonto] = useState(defaultAmount.toFixed(2))
+  const [fecha, setFecha] = useState(today)
+  const [notas, setNotas] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    const montoNum = parseFloat(monto)
+    if (isNaN(montoNum) || montoNum <= 0) {
+      setError('El monto debe ser mayor a 0')
+      return
+    }
+    if (!fecha) {
+      setError('La fecha es requerida')
+      return
+    }
+    setLoading(true)
+    const fd = new FormData()
+    fd.append('project_id', projectId)
+    fd.append('supplier_id', supplierId)
+    fd.append('monto', String(montoNum))
+    fd.append('fecha', fecha)
+    fd.append('notas', notas)
+    const result = await createSupplierPaymentAction(fd)
+    setLoading(false)
+    if (result.error) {
+      setError(result.error)
+      return
+    }
+    onOpenChange(false)
+    setMonto(defaultAmount.toFixed(2))
+    setFecha(today)
+    setNotas('')
+  }
+
+  function handleClose(isOpen: boolean) {
+    if (!isOpen) {
+      setError(null)
+      setMonto(defaultAmount.toFixed(2))
+      setFecha(today)
+      setNotas('')
+    }
+    onOpenChange(isOpen)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>
+            {stageLabel} — {supplierNombre}
+          </DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="qp-monto">Monto (MXN)</Label>
+            <div className="relative">
+              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground text-sm">
+                $
+              </span>
+              <Input
+                id="qp-monto"
+                type="number"
+                min={0.01}
+                step={0.01}
+                className="pl-6"
+                value={monto}
+                onChange={(e) => setMonto(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="qp-fecha">Fecha de Pago</Label>
+            <Input
+              id="qp-fecha"
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="qp-notas">Notas (opcional)</Label>
+            <Textarea
+              id="qp-notas"
+              placeholder="Ej: Transferencia bancaria"
+              rows={2}
+              value={notas}
+              onChange={(e) => setNotas(e.target.value)}
+            />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => handleClose(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Registrando...' : 'Registrar Pago'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 export function SupplierPaymentPanel({
@@ -61,10 +165,14 @@ export function SupplierPaymentPanel({
   payments,
   suppliers,
 }: SupplierPaymentPanelProps) {
-  const [open, setOpen] = useState(false)
-  const [serverError, setServerError] = useState<string | null>(null)
+  const [activeDialog, setActiveDialog] = useState<{
+    supplierId: string
+    supplierNombre: string
+    defaultAmount: number
+    stageLabel: string
+  } | null>(null)
 
-  // Derive unique suppliers from line_item_costs (multi-supplier model)
+  // Derive unique suppliers from line_item_costs
   const suppliersOnProjectMap = new Map<string, { id: string; nombre: string }>()
   for (const item of lineItems) {
     for (const cost of (item.line_item_costs ?? [])) {
@@ -76,300 +184,273 @@ export function SupplierPaymentPanel({
       }
     }
   }
-
-  // Fall back to full suppliers list if no suppliers on line items
   const suppliersOnProject =
     suppliersOnProjectMap.size > 0
       ? Array.from(suppliersOnProjectMap.values())
       : suppliers
 
-  // Compute per-supplier breakdown using line_item_costs
+  // Per-supplier breakdown
   const supplierBreakdown = suppliersOnProject.map((supplier) => {
-    // Sum all costs for this supplier across all line items (cost x cantidad)
     const totalOwed = lineItems.reduce((sum, li) => {
-      const supplierCosts = (li.line_item_costs ?? []).filter(
-        (c) => c.supplier_id === supplier.id
-      )
-      const costSum = supplierCosts.reduce((s, c) => s + Number(c.costo), 0)
+      const costSum = (li.line_item_costs ?? [])
+        .filter((c) => c.supplier_id === supplier.id)
+        .reduce((s, c) => s + Number(c.costo), 0)
       return sum + costSum * li.cantidad
     }, 0)
 
-    const supplierPayments = payments.filter(
-      (p) => p.supplier_id === supplier.id
-    )
+    const supplierPayments = payments
+      .filter((p) => p.supplier_id === supplier.id)
+      .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
+
     const totalPagado = calcTotalPagadoProveedor(supplierPayments)
     const saldo = calcSaldoProveedor(totalOwed, totalPagado)
-    return { supplier, totalOwed, totalPagado, saldo }
+    const anticipo = totalOwed * 0.5
+    const finiquito = totalOwed * 0.5
+
+    // Stage status based on cumulative payments
+    const anticipoPaid = totalPagado >= anticipo - 0.01
+    const finiquitoPaid = totalPagado >= totalOwed - 0.01
+
+    // Which payment record covers each stage (for delete + date display)
+    const anticipoPayment = anticipoPaid ? supplierPayments[0] ?? null : null
+    const finiquitoPayment = finiquitoPaid ? supplierPayments[supplierPayments.length - 1] ?? null : null
+
+    return {
+      supplier,
+      totalOwed,
+      totalPagado,
+      saldo,
+      anticipo,
+      finiquito,
+      anticipoPaid,
+      finiquitoPaid,
+      anticipoPayment,
+      finiquitoPayment,
+      supplierPayments,
+    }
   })
 
-  // Grand totals
-  const grandOwed = supplierBreakdown.reduce((sum, row) => sum + row.totalOwed, 0)
-  const grandPagado = supplierBreakdown.reduce((sum, row) => sum + row.totalPagado, 0)
+  const grandOwed = supplierBreakdown.reduce((sum, r) => sum + r.totalOwed, 0)
+  const grandPagado = supplierBreakdown.reduce((sum, r) => sum + r.totalPagado, 0)
   const grandSaldo = calcSaldoProveedor(grandOwed, grandPagado)
 
-  const defaultValues: FormValues = {
-    supplier_id: '',
-    monto: 0,
-    fecha: '',
-    notas: '',
-  }
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues,
-  })
-
-  async function onSubmit(values: FormValues) {
-    setServerError(null)
-
-    const formData = new FormData()
-    formData.append('project_id', projectId)
-    formData.append('supplier_id', values.supplier_id)
-    formData.append('monto', String(values.monto))
-    formData.append('fecha', values.fecha)
-    formData.append('notas', values.notas ?? '')
-
-    const result = await createSupplierPaymentAction(formData)
-
-    if (result.error) {
-      setServerError(result.error)
-      return
-    }
-
-    setOpen(false)
-    form.reset(defaultValues)
-    setServerError(null)
-  }
-
-  function handleOpenChange(isOpen: boolean) {
-    setOpen(isOpen)
-    if (!isOpen) {
-      form.reset(defaultValues)
-      setServerError(null)
-    }
-  }
-
-  // Lookup supplier name from payments
-  function getSupplierName(supplierId: string | null): string {
-    if (!supplierId) return '—'
-    const found = suppliersOnProject.find((s) => s.id === supplierId)
-    return found?.nombre ?? '—'
+  if (suppliersOnProject.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground rounded-md border border-dashed px-4 py-6 text-center">
+        No hay proveedores en las partidas de este proyecto.
+      </p>
+    )
   }
 
   return (
     <div className="space-y-4">
-      {/* Per-supplier summary card */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            Resumen de Pagos a Proveedores
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          {suppliersOnProject.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
-              No hay proveedores en las partidas de este proyecto.
-            </p>
-          ) : (
-            <>
-              {/* Header row */}
-              <div className="grid grid-cols-4 gap-2 text-xs font-medium text-muted-foreground pb-1">
-                <span>Proveedor</span>
-                <span className="text-right">Por Pagar</span>
-                <span className="text-right">Pagado</span>
-                <span className="text-right">Saldo</span>
-              </div>
-
-              {supplierBreakdown.map(({ supplier, totalOwed, totalPagado, saldo }) => (
-                <div key={supplier.id} className="grid grid-cols-4 gap-2">
-                  <span className="truncate">{supplier.nombre}</span>
-                  <span className="text-right">{formatMXN(totalOwed)}</span>
-                  <span className="text-right">{formatMXN(totalPagado)}</span>
-                  <span className={`text-right font-medium ${saldo <= 0 ? 'text-green-600 dark:text-green-400' : ''}`}>
-                    {formatMXN(saldo)}
-                  </span>
-                </div>
-              ))}
-
-              <Separator />
-
-              {/* Grand total row */}
-              <div className="grid grid-cols-4 gap-2 font-semibold">
-                <span>Total</span>
-                <span className="text-right">{formatMXN(grandOwed)}</span>
-                <span className="text-right">{formatMXN(grandPagado)}</span>
-                <span className={`text-right ${grandSaldo <= 0 ? 'text-green-600 dark:text-green-400' : ''}`}>
-                  {formatMXN(grandSaldo)}
-                </span>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Register Payment Button */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {payments.length === 0
-            ? 'No hay pagos registrados'
-            : `${payments.length} pago${payments.length === 1 ? '' : 's'} registrado${payments.length === 1 ? '' : 's'}`}
-        </p>
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-          <DialogTrigger asChild>
-            <Button type="button" size="sm">
-              Registrar Pago a Proveedor
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Registrar Pago a Proveedor</DialogTitle>
-            </DialogHeader>
-
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Proveedor */}
-              <div className="space-y-1">
-                <Label>
-                  Proveedor <span className="text-destructive">*</span>
-                </Label>
-                <Select
-                  onValueChange={(val) => form.setValue('supplier_id', val)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccionar proveedor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {suppliersOnProject.map((supplier) => (
-                      <SelectItem key={supplier.id} value={supplier.id}>
-                        {supplier.nombre}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.supplier_id && (
-                  <p className="text-sm text-destructive">
-                    {form.formState.errors.supplier_id.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Monto */}
-              <div className="space-y-1">
-                <Label htmlFor="monto">
-                  Monto (MXN) <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="monto"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder="0.00"
-                  {...form.register('monto')}
-                />
-                {form.formState.errors.monto && (
-                  <p className="text-sm text-destructive">
-                    {form.formState.errors.monto.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Fecha */}
-              <div className="space-y-1">
-                <Label htmlFor="fecha">
-                  Fecha de Pago <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="fecha"
-                  type="date"
-                  {...form.register('fecha')}
-                />
-                {form.formState.errors.fecha && (
-                  <p className="text-sm text-destructive">
-                    {form.formState.errors.fecha.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Notas */}
-              <div className="space-y-1">
-                <Label htmlFor="notas">Notas</Label>
-                <Textarea
-                  id="notas"
-                  placeholder="Notas opcionales..."
-                  rows={3}
-                  {...form.register('notas')}
-                />
-              </div>
-
-              {/* Server Error */}
-              {serverError && (
-                <p className="text-sm text-destructive">{serverError}</p>
-              )}
-
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleOpenChange(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? 'Registrando...' : 'Registrar Pago'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+      {/* Summary totals */}
+      <div className="grid grid-cols-3 divide-x rounded-md border text-center">
+        <div className="px-3 py-2">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+            Total a pagar
+          </p>
+          <p className="text-sm font-semibold tabular-nums">{formatMXN(grandOwed)}</p>
+        </div>
+        <div className="px-3 py-2">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+            Pagado
+          </p>
+          <p className="text-sm font-semibold tabular-nums">{formatMXN(grandPagado)}</p>
+        </div>
+        <div className="px-3 py-2">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+            Saldo
+          </p>
+          <p className={`text-sm font-bold tabular-nums ${grandSaldo <= 0.01 ? 'text-green-600' : ''}`}>
+            {formatMXN(grandSaldo)}
+          </p>
+        </div>
       </div>
 
-      {/* Payment History */}
-      {payments.length > 0 && (
-        <div className="rounded-md border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Fecha</th>
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Proveedor</th>
-                <th className="text-right px-3 py-2 font-medium text-muted-foreground">Monto</th>
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Notas</th>
-                <th className="px-3 py-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {payments.map((payment) => (
-                <tr key={payment.id} className="border-b last:border-0 hover:bg-muted/30">
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {formatFecha(payment.fecha)}
-                  </td>
-                  <td className="px-3 py-2">
-                    {getSupplierName(payment.supplier_id)}
-                  </td>
-                  <td className="px-3 py-2 text-right whitespace-nowrap">
-                    {formatMXN(payment.monto)}
-                  </td>
-                  <td className="px-3 py-2 text-muted-foreground max-w-[200px] truncate">
-                    {payment.notas ?? '—'}
-                  </td>
-                  <td className="px-3 py-2">
-                    <form action={async (fd) => { await deleteSupplierPaymentAction(fd) }}>
-                      <input type="hidden" name="paymentId" value={payment.id} />
-                      <input type="hidden" name="projectId" value={projectId} />
-                      <input type="hidden" name="supplierId" value={payment.supplier_id ?? ''} />
-                      <button
-                        type="submit"
-                        className="text-xs text-destructive hover:text-destructive/80 transition-colors"
-                      >
-                        Eliminar
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Per-supplier payment flow */}
+      <div className="space-y-3">
+        {supplierBreakdown.map(({
+          supplier,
+          totalOwed,
+          saldo,
+          anticipo,
+          finiquito,
+          anticipoPaid,
+          finiquitoPaid,
+          anticipoPayment,
+          finiquitoPayment,
+          supplierPayments,
+        }) => (
+          <div key={supplier.id} className="rounded-md border overflow-hidden">
+            {/* Supplier header */}
+            <div className="flex items-center justify-between px-4 py-2.5 bg-muted/40 border-b">
+              <span className="font-medium text-sm">{supplier.nombre}</span>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span>Total: {formatMXN(totalOwed)}</span>
+                <span className={`font-semibold ${saldo <= 0.01 ? 'text-green-600' : ''}`}>
+                  Saldo: {formatMXN(saldo)}
+                </span>
+              </div>
+            </div>
+
+            {/* Stage rows */}
+            <div className="divide-y">
+              {/* Anticipo */}
+              <StageRow
+                label="Anticipo"
+                amount={anticipo}
+                paid={anticipoPaid}
+                payment={anticipoPayment}
+                projectId={projectId}
+                supplierId={supplier.id}
+                onRegister={() =>
+                  setActiveDialog({
+                    supplierId: supplier.id,
+                    supplierNombre: supplier.nombre,
+                    defaultAmount: anticipo,
+                    stageLabel: 'Anticipo (50%)',
+                  })
+                }
+              />
+
+              {/* Finiquito — locked until anticipo is paid */}
+              <StageRow
+                label="Finiquito"
+                amount={finiquito}
+                paid={finiquitoPaid}
+                payment={finiquitoPayment}
+                projectId={projectId}
+                supplierId={supplier.id}
+                locked={!anticipoPaid}
+                onRegister={() =>
+                  setActiveDialog({
+                    supplierId: supplier.id,
+                    supplierNombre: supplier.nombre,
+                    defaultAmount: finiquito,
+                    stageLabel: 'Finiquito (50%)',
+                  })
+                }
+              />
+            </div>
+
+            {/* Individual payment history (collapsible summary) */}
+            {supplierPayments.length > 0 && (
+              <div className="px-4 py-2 border-t bg-muted/20">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1.5">
+                  Historial de pagos
+                </p>
+                <div className="space-y-1">
+                  {supplierPayments.map((p) => (
+                    <div key={p.id} className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">{formatFecha(p.fecha)}</span>
+                      <span className="tabular-nums">{formatMXN(p.monto)}</span>
+                      {p.notas && (
+                        <span className="text-muted-foreground max-w-[140px] truncate">
+                          {p.notas}
+                        </span>
+                      )}
+                      <form action={async (fd) => { await deleteSupplierPaymentAction(fd) }}>
+                        <input type="hidden" name="paymentId" value={p.id} />
+                        <input type="hidden" name="projectId" value={projectId} />
+                        <input type="hidden" name="supplierId" value={p.supplier_id ?? ''} />
+                        <button
+                          type="submit"
+                          className="text-muted-foreground hover:text-destructive transition-colors ml-2"
+                        >
+                          Eliminar
+                        </button>
+                      </form>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Quick pay dialog */}
+      {activeDialog && (
+        <QuickPayDialog
+          open={true}
+          onOpenChange={(isOpen) => { if (!isOpen) setActiveDialog(null) }}
+          projectId={projectId}
+          supplierId={activeDialog.supplierId}
+          supplierNombre={activeDialog.supplierNombre}
+          defaultAmount={activeDialog.defaultAmount}
+          stageLabel={activeDialog.stageLabel}
+        />
       )}
+    </div>
+  )
+}
+
+// ─── Stage row sub-component ────────────────────────────────────────────────
+
+interface StageRowProps {
+  label: string
+  amount: number
+  paid: boolean
+  payment: PaymentSupplier | null
+  projectId: string
+  supplierId: string
+  locked?: boolean
+  onRegister: () => void
+}
+
+function StageRow({ label, amount, paid, payment, locked, onRegister }: StageRowProps) {
+  return (
+    <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center gap-3">
+        {/* Status indicator */}
+        <div
+          className={`size-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+            paid
+              ? 'bg-green-500 border-green-500'
+              : locked
+              ? 'border-muted-foreground/30'
+              : 'border-muted-foreground/50'
+          }`}
+        >
+          {paid && (
+            <svg className="size-3 text-white" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </div>
+
+        <div>
+          <p className={`text-sm font-medium ${locked && !paid ? 'text-muted-foreground' : ''}`}>
+            {label} <span className="text-xs font-normal text-muted-foreground">50%</span>
+          </p>
+          {paid && payment && (
+            <p className="text-xs text-muted-foreground">
+              Pagado el {formatFecha(payment.fecha)}
+            </p>
+          )}
+          {locked && !paid && (
+            <p className="text-xs text-muted-foreground">Disponible al pagar el anticipo</p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className={`text-sm tabular-nums font-medium ${locked && !paid ? 'text-muted-foreground' : ''}`}>
+          {formatMXN(amount)}
+        </span>
+        {!paid && !locked && (
+          <Button type="button" size="sm" variant="outline" onClick={onRegister}>
+            Registrar Pago
+          </Button>
+        )}
+        {paid && (
+          <span className="text-xs text-green-600 font-medium">Pagado</span>
+        )}
+        {locked && !paid && (
+          <span className="text-xs text-muted-foreground/60">Pendiente</span>
+        )}
+      </div>
     </div>
   )
 }

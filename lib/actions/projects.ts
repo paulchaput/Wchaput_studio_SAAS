@@ -7,7 +7,17 @@ import { z } from 'zod'
 import { PIPELINE_STAGES } from '@/lib/calculations'
 import { CHECKLIST_SEED } from '@/lib/checklist-tasks'
 
-const projectSchema = z.object({
+const createProjectSchema = z.object({
+  nombre: z.string().min(1, 'El nombre del proyecto es requerido'),
+  cliente_nombre: z.string().min(1, 'El cliente es requerido'),
+  fecha_cotizacion: z.string().optional().nullable(),
+  salesperson: z.string().optional().nullable(),
+  fecha_entrega_estimada: z.string().optional().nullable(),
+  notas: z.string().optional().nullable(),
+  include_iva: z.boolean().default(true),
+})
+
+const updateProjectSchema = z.object({
   nombre: z.string().min(1, 'El nombre del proyecto es requerido'),
   cliente_nombre: z.string().min(1, 'El cliente es requerido'),
   numero_cotizacion: z.string().optional().nullable(),
@@ -15,7 +25,27 @@ const projectSchema = z.object({
   salesperson: z.string().optional().nullable(),
   fecha_entrega_estimada: z.string().optional().nullable(),
   notas: z.string().optional().nullable(),
+  include_iva: z.boolean().default(true),
 })
+
+async function generateNumeroCotizacion(
+  supabase: Awaited<ReturnType<typeof import('@/lib/supabase/server').createClient>>
+): Promise<string> {
+  const year = new Date().getFullYear()
+  const prefix = `COT-${year}-`
+  const { data } = await supabase
+    .from('projects')
+    .select('numero_cotizacion')
+    .like('numero_cotizacion', `${prefix}%`)
+    .order('numero_cotizacion', { ascending: false })
+    .limit(1)
+  let nextNum = 1
+  if (data && data.length > 0 && data[0].numero_cotizacion) {
+    const last = parseInt(data[0].numero_cotizacion.replace(prefix, ''), 10)
+    if (!isNaN(last)) nextNum = last + 1
+  }
+  return `${prefix}${String(nextNum).padStart(3, '0')}`
+}
 
 export async function createProjectAction(
   formData: FormData
@@ -23,22 +53,24 @@ export async function createProjectAction(
   const raw = {
     nombre: formData.get('nombre') as string,
     cliente_nombre: formData.get('cliente_nombre') as string,
-    numero_cotizacion: formData.get('numero_cotizacion') as string || null,
     fecha_cotizacion: formData.get('fecha_cotizacion') as string || null,
     salesperson: formData.get('salesperson') as string || null,
     fecha_entrega_estimada: formData.get('fecha_entrega_estimada') as string || null,
     notas: formData.get('notas') as string || null,
+    include_iva: formData.get('include_iva') === 'true',
   }
 
-  const parsed = projectSchema.safeParse(raw)
+  const parsed = createProjectSchema.safeParse(raw)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
   }
 
   const supabase = await createClient()
+  const numero_cotizacion = await generateNumeroCotizacion(supabase)
+
   const { data: project, error: projectError } = await supabase
     .from('projects')
-    .insert(parsed.data)
+    .insert({ ...parsed.data, numero_cotizacion })
     .select('id')
     .single()
 
@@ -80,9 +112,10 @@ export async function updateProjectAction(
     salesperson: formData.get('salesperson') as string || null,
     fecha_entrega_estimada: formData.get('fecha_entrega_estimada') as string || null,
     notas: formData.get('notas') as string || null,
+    include_iva: formData.get('include_iva') === 'true',
   }
 
-  const parsed = projectSchema.safeParse(raw)
+  const parsed = updateProjectSchema.safeParse(raw)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
   }

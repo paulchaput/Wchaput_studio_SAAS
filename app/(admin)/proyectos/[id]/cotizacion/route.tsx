@@ -7,7 +7,7 @@ interface RouteContext {
   params: Promise<{ id: string }>
 }
 
-export async function GET(_request: Request, { params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   const { id } = await params
 
   const supabase = await createClient()
@@ -24,10 +24,13 @@ export async function GET(_request: Request, { params }: RouteContext) {
     ? `cotizacion-${project.numero_cotizacion}.pdf`
     : `cotizacion-${id}.pdf`
 
+  const preview = new URL(request.url).searchParams.get('preview') === '1'
+  const disposition = preview ? `inline; filename="${filename}"` : `attachment; filename="${filename}"`
+
   return new Response(stream as unknown as ReadableStream, {
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Disposition': disposition,
     },
   })
 }

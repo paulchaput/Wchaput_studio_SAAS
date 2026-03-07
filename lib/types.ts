@@ -19,6 +19,7 @@ export interface Project {
   fecha_entrega_estimada: string | null  // ISO date string
   status: 'Prospecto' | 'Cotizado' | 'Anticipo Recibido' | 'En Producción' | 'Entregado' | 'Cerrado'
   notas: string | null
+  include_iva: boolean
   created_at: string
   updated_at: string
 }
