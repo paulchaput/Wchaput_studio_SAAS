@@ -117,11 +117,15 @@ async function executeTool(name: string, input: Entities): Promise<string> {
 export async function POST(request: Request): Promise<Response> {
   const auth = request.headers.get('Authorization') ?? ''
   const apiKey = process.env.WHATSAPP_BOT_API_KEY
+  const expectedAuth = `Bearer ${apiKey}`
   console.log('[Debug] auth header:', auth)
   console.log('[Debug] apiKey exists:', !!apiKey)
   console.log('[Debug] apiKey length:', apiKey?.length)
-  if (!apiKey || auth !== `Bearer ${apiKey}`) {
-    return Response.json({ error: 'Unauthorized', debug: { authReceived: auth, apiKeyExists: !!apiKey } }, { status: 401 })
+  console.log('[Debug] apiKey value:', apiKey)
+  console.log('[Debug] expected auth:', expectedAuth)
+  console.log('[Debug] match:', auth === expectedAuth)
+  if (!apiKey || auth !== expectedAuth) {
+    return Response.json({ error: 'Unauthorized', debug: { authReceived: auth, apiKeyExists: !!apiKey, apiKeyLength: apiKey?.length, expectedLength: expectedAuth.length } }, { status: 401 })
   }
 
   let body: { message?: string; from?: string; groupJid?: string }
