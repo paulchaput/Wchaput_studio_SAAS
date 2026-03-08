@@ -11,6 +11,7 @@
 // Required env vars (Railway):
 //   VERCEL_API_URL        — e.g. https://tu-app.vercel.app
 //   WHATSAPP_BOT_API_KEY  — random secret, same value in Railway + Vercel
+//   PORT                  — optional, defaults to 3000
 //
 // First-time setup:
 //   Run locally with `npm run dev`, scan the QR code with the bot's WhatsApp account.
@@ -29,12 +30,15 @@ import pino from 'pino'
 import { existsSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import qrcode from 'qrcode-terminal'
+import QRCode from 'qrcode'
+import http from 'http'
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const VERCEL_API_URL = process.env.VERCEL_API_URL
 const BOT_API_KEY = process.env.WHATSAPP_BOT_API_KEY
 const SESSION_DIR = join(process.cwd(), 'session')
+const PORT = parseInt(process.env.PORT || '3000')
 
 if (!VERCEL_API_URL || !BOT_API_KEY) {
   console.error('[Bot] Missing VERCEL_API_URL or WHATSAPP_BOT_API_KEY env vars')
@@ -43,6 +47,83 @@ if (!VERCEL_API_URL || !BOT_API_KEY) {
 
 // Minimal logger (suppress Baileys debug noise)
 const logger = pino({ level: 'warn' })
+
+// Store latest QR code
+let latestQR: string | null = null
+
+// ─── HTTP Server for QR Code ──────────────────────────────────────────────────
+
+const server = http.createServer(async (req, res) => {
+  const url = req.url || '/'
+  
+  // Health check
+  if (url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ status: 'ok', qrAvailable: !!latestQR }))
+    return
+  }
+  
+  // QR Code endpoint
+  if (url === '/qr') {
+    if (!latestQR) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' })
+      res.end('QR code not available yet. Wait for the bot to generate one.')
+      return
+    }
+    
+    try {
+      const qrBuffer = await QRCode.toBuffer(latestQR, { 
+        type: 'png',
+        width: 400,
+        margin: 2
+      })
+      res.writeHead(200, { 
+        'Content-Type': 'image/png',
+        'Cache-Control': 'no-cache'
+      })
+      res.end(qrBuffer)
+    } catch (err) {
+      console.error('[Bot] Error generating QR image:', err)
+      res.writeHead(500, { 'Content-Type': 'text/plain' })
+      res.end('Error generating QR code')
+    }
+    return
+  }
+  
+  // Root endpoint - instructions
+  res.writeHead(200, { 'Content-Type': 'text/html' })
+  res.end(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>W Chaput WhatsApp Bot</title>
+      <style>
+        body { font-family: system-ui, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .qr-container { text-align: center; margin: 30px 0; }
+        .qr-container img { border: 1px solid #ddd; border-radius: 8px; padding: 10px; }
+        .status { padding: 10px; border-radius: 4px; margin: 20px 0; }
+        .status.connected { background: #d4edda; color: #155724; }
+        .status.waiting { background: #fff3cd; color: #856404; }
+      </style>
+    </head>
+    <body>
+      <h1>🤖 W Chaput WhatsApp Bot</h1>
+      <div class="qr-container">
+        <h2>Escanea el QR con WhatsApp</h2>
+        <p>Abre WhatsApp → ⋮ → Dispositivos vinculados → Vincular dispositivo</p>
+        <img src="/qr" alt="QR Code" onerror="this.style.display='none'; document.getElementById('error').style.display='block'">
+        <p id="error" style="display:none; color: #856404;">QR no disponible aún. Espera unos segundos y recarga.</p>
+      </div>
+      <p><a href="/health">Ver estado del bot</a></p>
+    </body>
+    </html>
+  `)
+})
+
+server.listen(PORT, () => {
+  console.log(`[Bot] HTTP server running on port ${PORT}`)
+  console.log(`[Bot] QR Code available at: http://localhost:${PORT}/qr`)
+})
 
 // ─── Message text extractor ───────────────────────────────────────────────────
 
@@ -113,11 +194,15 @@ async function startBot(): Promise<void> {
   // Handle connection state
   sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
     if (qr) {
-      console.log('\n[Bot] Escanea este QR con WhatsApp → ⋮ → Dispositivos vinculados → Vincular dispositivo\n')
+      latestQR = qr
+      console.log('\n[Bot] QR Code generado!')
+      console.log(`[Bot] Abre: http://localhost:${PORT}/qr para ver el código`)
+      console.log('[Bot] O escanea el QR en la terminal (modo texto):\n')
       qrcode.generate(qr, { small: true })
     }
 
     if (connection === 'open') {
+      latestQR = null
       console.log('[Bot] ✅ Connected to WhatsApp!')
     }
 
