@@ -11,7 +11,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { PlusCircle, Pencil } from 'lucide-react'
+import { Pencil } from 'lucide-react'
+import { QuickProjectDialog } from '@/components/projects/QuickProjectDialog'
+import { ImportProjectsDialog } from '@/components/projects/ImportProjectsDialog'
 
 export default async function ProyectosPage() {
   const projects = await getProjects()
@@ -26,23 +28,22 @@ export default async function ProyectosPage() {
             {projects.length} proyecto{projects.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <Button asChild className="w-full sm:w-auto">
-          <Link href="/proyectos/nuevo">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Nuevo Proyecto
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <ImportProjectsDialog />
+          <QuickProjectDialog />
+        </div>
       </div>
 
       {/* Empty state */}
       {projects.length === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center">
           <p className="text-muted-foreground mb-4">
-            No hay proyectos. Crea el primero.
+            No hay proyectos. Crea el primero o importa desde un archivo.
           </p>
-          <Button asChild variant="outline">
-            <Link href="/proyectos/nuevo">Crear proyecto</Link>
-          </Button>
+          <div className="flex justify-center gap-3">
+            <ImportProjectsDialog />
+            <QuickProjectDialog />
+          </div>
         </div>
       ) : (
         /* Project table */
