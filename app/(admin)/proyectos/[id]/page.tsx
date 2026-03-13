@@ -136,7 +136,6 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
           projectId={id}
           lineItems={lineItems}
           payments={supplierPayments}
-          suppliers={suppliers}
         />
       </div>
 

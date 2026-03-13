@@ -18,70 +18,54 @@ vi.mock('@/lib/supabase/server', () => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
-  // Chain: from -> update -> eq -> returns { data: null, error: null }
   mockEq.mockResolvedValue({ data: null, error: null })
   mockUpdate.mockReturnValue({ eq: mockEq })
   mockFrom.mockReturnValue({ update: mockUpdate })
 })
 
-describe('updateChecklistTaskAction', () => {
-  it('Test 1 (CHEC-03): returns error for invalid status "Hecho" — does not call supabase', async () => {
-    const { updateChecklistTaskAction } = await import('@/lib/actions/checklist')
-
-    const formData = new FormData()
-    formData.set('taskId', '123e4567-e89b-12d3-a456-426614174000')
-    formData.set('projectId', '123e4567-e89b-12d3-a456-426614174001')
-    formData.set('status', 'Hecho')
-
-    const result = await updateChecklistTaskAction(formData)
-
-    expect(result).toHaveProperty('error')
-    expect(result.error).toBeTruthy()
-    expect(mockFrom).not.toHaveBeenCalled()
-  })
-
-  it('Test 2 (CHEC-03): returns error for invalid taskId (not a UUID)', async () => {
-    const { updateChecklistTaskAction } = await import('@/lib/actions/checklist')
+describe('toggleChecklistTaskAction', () => {
+  it('returns error for invalid taskId (not a UUID)', async () => {
+    const { toggleChecklistTaskAction } = await import('@/lib/actions/checklist')
 
     const formData = new FormData()
     formData.set('taskId', 'not-a-uuid')
     formData.set('projectId', '123e4567-e89b-12d3-a456-426614174001')
-    formData.set('status', 'Completado')
+    formData.set('completed', 'true')
 
-    const result = await updateChecklistTaskAction(formData)
+    const result = await toggleChecklistTaskAction(formData)
 
     expect(result).toHaveProperty('error')
     expect(result.error).toBeTruthy()
   })
 
-  it('Test 3 (CHEC-03): valid taskId + projectId + status calls supabase and returns {}', async () => {
-    const { updateChecklistTaskAction } = await import('@/lib/actions/checklist')
+  it('toggles task to Completado with completed_at', async () => {
+    const { toggleChecklistTaskAction } = await import('@/lib/actions/checklist')
 
     const formData = new FormData()
     formData.set('taskId', '123e4567-e89b-12d3-a456-426614174000')
     formData.set('projectId', '123e4567-e89b-12d3-a456-426614174001')
-    formData.set('status', 'Completado')
+    formData.set('completed', 'true')
 
-    const result = await updateChecklistTaskAction(formData)
+    const result = await toggleChecklistTaskAction(formData)
 
     expect(result).toEqual({})
     expect(mockFrom).toHaveBeenCalledWith('checklist_tasks')
-    expect(mockUpdate).toHaveBeenCalledWith({ status: 'Completado' })
-    expect(mockEq).toHaveBeenCalledWith('id', '123e4567-e89b-12d3-a456-426614174000')
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'Completado', completed_at: expect.any(String) })
+    )
   })
 
-  it('Test 4 (CHEC-03): accepts partial patch — only status field required', async () => {
-    const { updateChecklistTaskAction } = await import('@/lib/actions/checklist')
+  it('toggles task to Pendiente with null completed_at', async () => {
+    const { toggleChecklistTaskAction } = await import('@/lib/actions/checklist')
 
     const formData = new FormData()
     formData.set('taskId', '123e4567-e89b-12d3-a456-426614174000')
     formData.set('projectId', '123e4567-e89b-12d3-a456-426614174001')
-    formData.set('status', 'En Proceso')
-    // No assignee or due_date fields
+    formData.set('completed', 'false')
 
-    const result = await updateChecklistTaskAction(formData)
+    const result = await toggleChecklistTaskAction(formData)
 
     expect(result).toEqual({})
-    expect(mockUpdate).toHaveBeenCalledWith({ status: 'En Proceso' })
+    expect(mockUpdate).toHaveBeenCalledWith({ status: 'Pendiente', completed_at: null })
   })
 })

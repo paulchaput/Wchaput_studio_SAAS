@@ -29,7 +29,6 @@ interface SupplierPaymentPanelProps {
   projectId: string
   lineItems: LineItem[]
   payments: PaymentSupplier[]
-  suppliers: Array<{ id: string; nombre: string }>
 }
 
 interface QuickPayDialogProps {
@@ -163,7 +162,6 @@ export function SupplierPaymentPanel({
   projectId,
   lineItems,
   payments,
-  suppliers,
 }: SupplierPaymentPanelProps) {
   const [activeDialog, setActiveDialog] = useState<{
     supplierId: string

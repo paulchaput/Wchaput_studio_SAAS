@@ -78,12 +78,12 @@ export async function createProjectAction(
     return { error: projectError?.message ?? 'Error al crear el proyecto' }
   }
 
-  // Bulk-seed 30 checklist tasks
+  // Seed checklist milestones
   const tasks = CHECKLIST_SEED.map((task, index) => ({
     project_id: project.id,
     fase: task.fase,
     nombre: task.nombre,
-    sort_order: index,
+    sort_order: index + 1,
     status: 'Pendiente' as const,
   }))
 

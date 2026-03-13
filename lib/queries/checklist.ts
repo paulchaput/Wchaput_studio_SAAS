@@ -5,7 +5,7 @@ export async function getChecklistTasks(projectId: string): Promise<ChecklistTas
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('checklist_tasks')
-    .select('id, fase, nombre, assignee, due_date, status, sort_order')
+    .select('id, fase, nombre, status, completed_at, sort_order')
     .eq('project_id', projectId)
     .order('sort_order', { ascending: true })
 
