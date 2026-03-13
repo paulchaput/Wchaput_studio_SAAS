@@ -184,10 +184,7 @@ export function SupplierPaymentPanel({
       }
     }
   }
-  const suppliersOnProject =
-    suppliersOnProjectMap.size > 0
-      ? Array.from(suppliersOnProjectMap.values())
-      : suppliers
+  const suppliersOnProject = Array.from(suppliersOnProjectMap.values())
 
   // Per-supplier breakdown
   const supplierBreakdown = suppliersOnProject.map((supplier) => {
