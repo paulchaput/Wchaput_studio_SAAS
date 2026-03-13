@@ -64,6 +64,19 @@ export interface SupplierDebtResult {
   Otros: number
 }
 
+export interface SupplierProjectDebt {
+  supplier_nombre: string
+  supplier_id: string
+  total_owed: number
+  total_paid: number
+  outstanding: number
+  projects: Array<{
+    project_id: string
+    project_nombre: string
+    amount: number
+  }>
+}
+
 // ─── Pure helper: aggregateDashboardKpis ─────────────────────────────────────
 
 /**
@@ -336,6 +349,90 @@ export function aggregateCashFlow(
   entries.sort((a, b) => a.fecha.localeCompare(b.fecha))
 
   return entries
+}
+
+// ─── Server query: getSupplierDebtDetailed ───────────────────────────────────
+
+export async function getSupplierDebtDetailed(): Promise<SupplierProjectDebt[]> {
+  const supabase = await createClient()
+
+  const [costsRes, paymentsRes] = await Promise.all([
+    supabase.from('line_item_costs').select(`
+      costo, supplier_id,
+      suppliers ( id, nombre ),
+      line_items (
+        cantidad,
+        project_id,
+        projects ( id, nombre, status )
+      )
+    `),
+    supabase.from('payments_supplier').select('supplier_id, monto'),
+  ])
+
+  const costs = costsRes.data ?? []
+  const payments = paymentsRes.data ?? []
+
+  // Build per-supplier, per-project debt
+  const supplierMap: Record<string, {
+    nombre: string
+    totalOwed: number
+    projects: Record<string, { nombre: string; amount: number }>
+  }> = {}
+
+  for (const c of costs) {
+    const li = Array.isArray(c.line_items) ? c.line_items[0] : c.line_items
+    if (!li) continue
+    const proj = Array.isArray(li.projects) ? li.projects[0] : li.projects
+    if (!proj || proj.status === 'Cerrado') continue
+
+    const suppId = c.supplier_id ?? 'unknown'
+    const suppRaw = Array.isArray(c.suppliers) ? c.suppliers[0] : c.suppliers
+    const suppNombre = suppRaw?.nombre ?? 'Sin proveedor'
+    const cantidad = Number(li.cantidad ?? 1)
+    const costo = Number(c.costo) * cantidad
+
+    if (!supplierMap[suppId]) {
+      supplierMap[suppId] = { nombre: suppNombre, totalOwed: 0, projects: {} }
+    }
+    supplierMap[suppId].totalOwed += costo
+
+    const projId = proj.id ?? li.project_id
+    if (!supplierMap[suppId].projects[projId]) {
+      supplierMap[suppId].projects[projId] = { nombre: proj.nombre ?? projId, amount: 0 }
+    }
+    supplierMap[suppId].projects[projId].amount += costo
+  }
+
+  // Sum payments per supplier
+  const paidBySupplier: Record<string, number> = {}
+  for (const p of payments) {
+    const id = p.supplier_id ?? 'unknown'
+    paidBySupplier[id] = (paidBySupplier[id] ?? 0) + Number(p.monto)
+  }
+
+  // Build result array sorted by outstanding desc
+  const result: SupplierProjectDebt[] = Object.entries(supplierMap)
+    .map(([id, data]) => {
+      const paid = paidBySupplier[id] ?? 0
+      return {
+        supplier_id: id,
+        supplier_nombre: data.nombre,
+        total_owed: data.totalOwed,
+        total_paid: paid,
+        outstanding: data.totalOwed - paid,
+        projects: Object.entries(data.projects)
+          .map(([pid, pdata]) => ({
+            project_id: pid,
+            project_nombre: pdata.nombre,
+            amount: pdata.amount,
+          }))
+          .sort((a, b) => b.amount - a.amount),
+      }
+    })
+    .filter(s => s.outstanding > 0)
+    .sort((a, b) => b.outstanding - a.outstanding)
+
+  return result
 }
 
 // ─── Server query: getDashboardKpis ──────────────────────────────────────────

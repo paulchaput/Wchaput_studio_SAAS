@@ -1,7 +1,7 @@
 import {
   getDashboardKpis,
   getPipelineSummary,
-  getSupplierDebtBreakdown,
+  getSupplierDebtDetailed,
   getMonthlyFinancials,
   getCashFlowProjection,
 } from '@/lib/queries/dashboard'
@@ -12,10 +12,10 @@ import { DashboardCharts } from '@/components/dashboard/DashboardCharts'
 import { formatMXN } from '@/lib/formatters'
 
 export default async function DashboardPage() {
-  const [kpis, pipelineCounts, supplierDebt, monthlyData, cashFlow] = await Promise.all([
+  const [kpis, pipelineCounts, supplierDebtDetails, monthlyData, cashFlow] = await Promise.all([
     getDashboardKpis(),
     getPipelineSummary(),
-    getSupplierDebtBreakdown(),
+    getSupplierDebtDetailed(),
     getMonthlyFinancials(),
     getCashFlowProjection(),
   ])
@@ -54,7 +54,7 @@ export default async function DashboardPage() {
       {/* Pipeline summary + supplier debt */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <PipelineSummary pipelineCounts={pipelineCounts} />
-        <SupplierDebtBreakdown deuda={supplierDebt} />
+        <SupplierDebtBreakdown debtDetails={supplierDebtDetails} />
       </div>
 
       <DashboardCharts monthlyData={monthlyData} cashFlow={cashFlow} />
