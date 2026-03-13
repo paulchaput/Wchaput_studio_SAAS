@@ -4,34 +4,20 @@
 ALTER TABLE public.checklist_tasks
   ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ DEFAULT NULL;
 
--- 2. Backfill completed_at for already-completed tasks
-UPDATE public.checklist_tasks
-  SET completed_at = NOW()
-  WHERE status IN ('Completado', 'N/A') AND completed_at IS NULL;
+-- 2. Delete old tasks BEFORE changing constraints
+DELETE FROM public.checklist_tasks;
 
--- 3. Normalize old statuses to Pendiente/Completado
-UPDATE public.checklist_tasks
-  SET status = 'Completado'
-  WHERE status IN ('N/A');
-
-UPDATE public.checklist_tasks
-  SET status = 'Pendiente'
-  WHERE status IN ('En Proceso', 'Bloqueado');
-
--- 4. Update fase CHECK constraint to new phases
+-- 3. Update fase CHECK constraint to new phases
 ALTER TABLE public.checklist_tasks DROP CONSTRAINT IF EXISTS checklist_tasks_fase_check;
 ALTER TABLE public.checklist_tasks
   ADD CONSTRAINT checklist_tasks_fase_check
   CHECK (fase IN ('Cotización', 'Producción', 'Entrega'));
 
--- 5. Update status CHECK constraint
+-- 4. Update status CHECK constraint
 ALTER TABLE public.checklist_tasks DROP CONSTRAINT IF EXISTS checklist_tasks_status_check;
 ALTER TABLE public.checklist_tasks
   ADD CONSTRAINT checklist_tasks_status_check
   CHECK (status IN ('Pendiente', 'Completado'));
-
--- 6. Delete old tasks and reseed for ALL existing projects
-DELETE FROM public.checklist_tasks;
 
 INSERT INTO public.checklist_tasks (project_id, fase, nombre, status, sort_order)
 SELECT
