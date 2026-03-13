@@ -57,9 +57,14 @@ export function LineItemTable({ lineItems, suppliers, projectId }: LineItemTable
                 </td>
                 <td className="px-3 py-2 text-right">{item.cantidad}</td>
                 <td className="px-3 py-2 text-right">
-                  {formatMXN(item.precio_venta)}
-                  {descuento > 0 && (
-                    <span className="ml-1 text-xs text-amber-600 font-medium">-{descuento}%</span>
+                  {descuento > 0 ? (
+                    <div>
+                      <span className="text-muted-foreground line-through text-xs">{formatMXN(item.precio_venta)}</span>
+                      <span className="ml-1 text-xs text-amber-600 font-medium">-{descuento}%</span>
+                      <div className="font-medium">{formatMXN(item.precio_venta * (1 - descuento / 100))}</div>
+                    </div>
+                  ) : (
+                    formatMXN(item.precio_venta)
                   )}
                 </td>
                 <td className="px-3 py-2 text-right">{formatMXN(totalCosto)}</td>

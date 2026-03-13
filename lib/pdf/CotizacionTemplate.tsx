@@ -98,11 +98,20 @@ export function CotizacionTemplate({ project }: CotizacionTemplateProps) {
                 <Text style={{ fontSize: 7.5, color: '#6b7280', marginTop: 1 }}>{item.referencia}</Text>
               )}
               {item.descuento > 0 && (
-                <Text style={{ fontSize: 7.5, color: '#d97706', marginTop: 1 }}>Descuento: {item.descuento}%</Text>
+                <Text style={{ fontSize: 7.5, color: '#d97706', marginTop: 1 }}>
+                  Descuento {item.descuento}% (-{formatMXN(item.precioVenta * item.descuento / 100)}/ud.)
+                </Text>
               )}
             </View>
             <Text style={styles.colQty}>{item.cantidad}</Text>
-            <Text style={styles.colPrice}>{formatMXN(item.precioVenta)}</Text>
+            {item.descuento > 0 ? (
+              <View style={styles.colPrice}>
+                <Text style={{ textDecoration: 'line-through', color: '#9ca3af', fontSize: 7.5 }}>{formatMXN(item.precioVenta)}</Text>
+                <Text>{formatMXN(item.precioVenta * (1 - item.descuento / 100))}</Text>
+              </View>
+            ) : (
+              <Text style={styles.colPrice}>{formatMXN(item.precioVenta)}</Text>
+            )}
             <Text style={styles.colTotal}>{formatMXN(item.totalVenta)}</Text>
           </View>
         ))}
