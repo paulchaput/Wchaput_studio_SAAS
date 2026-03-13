@@ -1,19 +1,8 @@
-import Link from 'next/link'
 import { getProjects } from '@/lib/queries/projects'
-import { formatMXN, formatFecha } from '@/lib/formatters'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Pencil } from 'lucide-react'
 import { QuickProjectDialog } from '@/components/projects/QuickProjectDialog'
 import { ImportProjectsDialog } from '@/components/projects/ImportProjectsDialog'
+import { ProjectsTable } from '@/components/projects/ProjectsTable'
+import { FolderOpen } from 'lucide-react'
 
 export default async function ProyectosPage() {
   const projects = await getProjects()
@@ -34,11 +23,13 @@ export default async function ProyectosPage() {
         </div>
       </div>
 
-      {/* Empty state */}
+      {/* Content */}
       {projects.length === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center">
-          <p className="text-muted-foreground mb-4">
-            No hay proyectos. Crea el primero o importa desde un archivo.
+          <FolderOpen className="mx-auto h-12 w-12 text-muted-foreground/40 mb-4" />
+          <h2 className="text-lg font-medium mb-1">Sin proyectos todavia</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            Crea tu primer proyecto o importa varios desde un archivo.
           </p>
           <div className="flex justify-center gap-3">
             <ImportProjectsDialog />
@@ -46,57 +37,7 @@ export default async function ProyectosPage() {
           </div>
         </div>
       ) : (
-        /* Project table */
-        <div className="rounded-lg border overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead className="hidden sm:table-cell">N° Cotización</TableHead>
-                <TableHead className="hidden sm:table-cell">Fecha</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Total Venta</TableHead>
-                <TableHead className="w-10" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {projects.map(project => (
-                <TableRow key={project.id}>
-                  <TableCell className="font-medium">
-                    <Link
-                      href={`/proyectos/${project.id}`}
-                      className="hover:underline"
-                    >
-                      {project.nombre}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{project.cliente_nombre}</TableCell>
-                  <TableCell className="hidden sm:table-cell text-muted-foreground">
-                    {project.numero_cotizacion ?? '—'}
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell text-muted-foreground">
-                    {formatFecha(project.fecha_cotizacion)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{project.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right font-mono text-sm">
-                    {formatMXN(project.gran_total)}
-                  </TableCell>
-                  <TableCell>
-                    <Button asChild variant="ghost" size="sm">
-                      <Link href={`/proyectos/${project.id}/editar`}>
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">Editar</span>
-                      </Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <ProjectsTable projects={projects} />
       )}
     </div>
   )

@@ -18,6 +18,7 @@ import { ClientPaymentPanel } from '@/components/projects/ClientPaymentPanel'
 import { SupplierPaymentPanel } from '@/components/projects/SupplierPaymentPanel'
 import { ChecklistPanel } from '@/components/projects/ChecklistPanel'
 import { PdfPreviewModal } from '@/components/projects/PdfPreviewModal'
+import { DeleteProjectButton } from '@/components/projects/DeleteProjectButton'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 
@@ -77,10 +78,11 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
             )}
           </div>
         </div>
-        <div className="flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Button asChild variant="outline" size="sm">
             <Link href={`/proyectos/${id}/editar`}>Editar</Link>
           </Button>
+          <DeleteProjectButton projectId={id} projectName={project.nombre} />
         </div>
       </div>
 

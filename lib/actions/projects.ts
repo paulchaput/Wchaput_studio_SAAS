@@ -156,3 +156,39 @@ export async function updateProjectStatusAction(
   revalidatePath('/proyectos/' + projectId)
   return {}
 }
+
+export async function deleteProjectAction(
+  projectId: string
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+
+  // Delete related records first (cascade may not be set up)
+  await supabase.from('checklist_tasks').delete().eq('project_id', projectId)
+  await supabase.from('payments_client').delete().eq('project_id', projectId)
+  await supabase.from('payments_supplier').delete().eq('project_id', projectId)
+
+  // Delete line_item_costs via line_items
+  const { data: lineItems } = await supabase
+    .from('line_items')
+    .select('id')
+    .eq('project_id', projectId)
+
+  if (lineItems && lineItems.length > 0) {
+    const ids = lineItems.map(li => li.id)
+    await supabase.from('line_item_costs').delete().in('line_item_id', ids)
+  }
+
+  await supabase.from('line_items').delete().eq('project_id', projectId)
+
+  const { error } = await supabase
+    .from('projects')
+    .delete()
+    .eq('id', projectId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/proyectos')
+  return {}
+}
