@@ -9,6 +9,7 @@ describe('QuoteLineItem — data safety (QUOT-03)', () => {
       referencia: 'REF-001',
       cantidad: 2,
       precioVenta: 5000,
+      descuento: 0,
       totalVenta: 10000,
     }
     expect(item).not.toHaveProperty('costo_proveedor')
@@ -24,13 +25,15 @@ describe('QuoteLineItem — data safety (QUOT-03)', () => {
       fecha_cotizacion: '2026-01-15',
       salesperson: 'Paul',
       subtotal: 10000,
+      descuentoGeneral: 0,
+      descuentoGeneralMonto: 0,
       iva: 1600,
       granTotal: 11600,
       includeIva: true,
       anticipo: 8120,
       saldo: 3480,
       lineItems: [
-        { descripcion: 'Mesa', referencia: null, cantidad: 1, precioVenta: 10000, totalVenta: 10000 },
+        { descripcion: 'Mesa', referencia: null, cantidad: 1, precioVenta: 10000, descuento: 0, totalVenta: 10000 },
       ],
     }
     expect(project.lineItems[0]).not.toHaveProperty('costo_proveedor')

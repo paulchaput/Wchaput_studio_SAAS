@@ -42,6 +42,7 @@ const formSchema = z.object({
   dimensiones: z.string().optional(),
   cantidad: z.coerce.number().int().positive('La cantidad debe ser mayor a 0'),
   precio_venta: z.coerce.number().nonnegative('El precio de venta no puede ser negativo'),
+  descuento: z.coerce.number().min(0).max(100).default(0),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -70,6 +71,7 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
         dimensiones: lineItem.dimensiones ?? '',
         cantidad: lineItem.cantidad,
         precio_venta: lineItem.precio_venta,
+        descuento: lineItem.descuento ?? 0,
       }
     : {
         descripcion: '',
@@ -77,6 +79,7 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
         dimensiones: '',
         cantidad: 1,
         precio_venta: 0,
+        descuento: 0,
       }
 
   const form = useForm<FormValues>({
@@ -134,6 +137,7 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
     formData.append('dimensiones', values.dimensiones ?? '')
     formData.append('cantidad', String(values.cantidad))
     formData.append('precio_venta', String(values.precio_venta))
+    formData.append('descuento', String(values.descuento))
 
     const result = isEditMode && lineItem
       ? await updateLineItemAction(lineItem.id, formData)
@@ -252,8 +256,8 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
             </div>
           </div>
 
-          {/* Cantidad + Precio de Venta — related fields side by side */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Cantidad + Precio de Venta + Descuento */}
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="cantidad">
                 Cantidad <span className="text-destructive">*</span>
@@ -292,6 +296,23 @@ export function LineItemForm({ projectId, suppliers, lineItem }: LineItemFormPro
               {form.formState.errors.precio_venta && (
                 <p className="text-xs text-destructive">
                   {form.formState.errors.precio_venta.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="descuento">Descuento %</Label>
+              <Input
+                id="descuento"
+                type="number"
+                min={0}
+                max={100}
+                step={0.01}
+                placeholder="0"
+                {...form.register('descuento')}
+              />
+              {form.formState.errors.descuento && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.descuento.message}
                 </p>
               )}
             </div>

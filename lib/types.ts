@@ -20,6 +20,7 @@ export interface Project {
   status: 'Prospecto' | 'Cotizado' | 'Anticipo Recibido' | 'En Producción' | 'Entregado' | 'Cerrado'
   notas: string | null
   include_iva: boolean
+  descuento_general: number  // NUMERIC(5,2) — general project discount percentage (0-100)
   created_at: string
   updated_at: string
 }
@@ -51,6 +52,7 @@ export interface LineItem {
   dimensiones: string | null
   cantidad: number
   precio_venta: number  // NUMERIC(12,2) — ADMIN ONLY, direct user input
+  descuento: number  // NUMERIC(5,2) — per-item discount percentage (0-100)
   created_at: string
   line_item_costs?: LineItemCost[]
 }

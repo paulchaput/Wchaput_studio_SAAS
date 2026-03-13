@@ -1,6 +1,6 @@
 'use client'
 
-import { calcSubtotalFromPrecio, calcIVA, calcTotal, calcUtilidad } from '@/lib/calculations'
+import { calcSubtotalFromPrecioWithDiscount, calcIVA, calcTotal, calcUtilidad } from '@/lib/calculations'
 import { formatMXN } from '@/lib/formatters'
 import { Separator } from '@/components/ui/separator'
 
@@ -11,20 +11,24 @@ interface LineItemCostLike {
 interface LineItemLike {
   precio_venta: number
   cantidad: number
+  descuento?: number
   line_item_costs?: LineItemCostLike[]
 }
 
 interface ProjectFinancialSummaryProps {
   lineItems: LineItemLike[]
   includeIva: boolean
+  descuentoGeneral?: number
+  descuentoGeneralMonto?: number
 }
 
-export function ProjectFinancialSummary({ lineItems, includeIva }: ProjectFinancialSummaryProps) {
-  const subtotal = calcSubtotalFromPrecio(
-    lineItems.map(li => ({ precio_venta: Number(li.precio_venta), cantidad: li.cantidad }))
+export function ProjectFinancialSummary({ lineItems, includeIva, descuentoGeneral = 0, descuentoGeneralMonto = 0 }: ProjectFinancialSummaryProps) {
+  const subtotal = calcSubtotalFromPrecioWithDiscount(
+    lineItems.map(li => ({ precio_venta: Number(li.precio_venta), cantidad: li.cantidad, descuento: Number(li.descuento ?? 0) }))
   )
-  const iva = includeIva ? calcIVA(subtotal) : 0
-  const total = includeIva ? calcTotal(subtotal) : subtotal
+  const subtotalConDescuento = subtotal - descuentoGeneralMonto
+  const iva = includeIva ? calcIVA(subtotalConDescuento) : 0
+  const total = includeIva ? calcTotal(subtotalConDescuento) : subtotalConDescuento
 
   const totalCosto = lineItems.reduce(
     (sum, li) =>
@@ -48,21 +52,20 @@ export function ProjectFinancialSummary({ lineItems, includeIva }: ProjectFinanc
       </div>
 
       <div className="space-y-1.5 text-sm">
-        {includeIva ? (
-          <>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span>{formatMXN(subtotal)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">IVA (16%)</span>
-              <span>{formatMXN(iva)}</span>
-            </div>
-          </>
-        ) : (
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Subtotal</span>
+          <span>{formatMXN(subtotal)}</span>
+        </div>
+        {descuentoGeneral > 0 && (
+          <div className="flex justify-between text-amber-600">
+            <span>Descuento general ({descuentoGeneral}%)</span>
+            <span>-{formatMXN(descuentoGeneralMonto)}</span>
+          </div>
+        )}
+        {includeIva && (
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Subtotal</span>
-            <span>{formatMXN(subtotal)}</span>
+            <span className="text-muted-foreground">IVA (16%)</span>
+            <span>{formatMXN(iva)}</span>
           </div>
         )}
         <div className="flex justify-between font-bold">

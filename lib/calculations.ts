@@ -164,3 +164,18 @@ export function calcMargenFromPrecio(precioVenta: number, totalCosto: number): n
 export function calcSubtotalFromPrecio(items: Array<{ precio_venta: number; cantidad: number }>): number {
   return items.reduce((sum, item) => sum + item.precio_venta * item.cantidad, 0)
 }
+
+/** Subtotal from precio_venta with per-item discount applied */
+export function calcSubtotalFromPrecioWithDiscount(
+  items: Array<{ precio_venta: number; cantidad: number; descuento: number }>
+): number {
+  return items.reduce((sum, item) => {
+    const discounted = item.precio_venta * (1 - item.descuento / 100)
+    return sum + discounted * item.cantidad
+  }, 0)
+}
+
+/** Apply a general discount percentage to a subtotal */
+export function calcDescuentoGeneral(subtotal: number, descuentoPct: number): number {
+  return subtotal * (descuentoPct / 100)
+}

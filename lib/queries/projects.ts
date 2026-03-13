@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { calcSubtotalFromPrecio, calcTotal, calcTotalCosto, calcIVA, calcAnticipo, calcSaldo } from '@/lib/calculations'
+import { calcSubtotalFromPrecioWithDiscount, calcDescuentoGeneral, calcTotal, calcTotalCosto, calcIVA, calcAnticipo, calcSaldo } from '@/lib/calculations'
 import type { QuoteProjectData, QuoteLineItem } from '@/lib/pdf/CotizacionTemplate'
 import type { OcLineItem, OcProjectData } from '@/lib/pdf/OrdenCompraTemplate'
 
@@ -7,17 +7,25 @@ export async function getProjects() {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('projects')
-    .select(`id, nombre, cliente_nombre, numero_cotizacion, fecha_cotizacion, status, created_at,
-             line_items(precio_venta, cantidad)`)
+    .select(`id, nombre, cliente_nombre, numero_cotizacion, fecha_cotizacion, status, created_at, descuento_general,
+             line_items(precio_venta, cantidad, descuento)`)
     .order('created_at', { ascending: false })
 
   if (error) throw error
 
-  return (data ?? []).map(p => ({
-    ...p,
-    subtotal: calcSubtotalFromPrecio(p.line_items ?? []),
-    gran_total: calcTotal(calcSubtotalFromPrecio(p.line_items ?? [])),
-  }))
+  return (data ?? []).map(p => {
+    const subtotalBruto = calcSubtotalFromPrecioWithDiscount(
+      (p.line_items ?? []).map(li => ({ precio_venta: Number(li.precio_venta), cantidad: li.cantidad, descuento: Number(li.descuento ?? 0) }))
+    )
+    const descuentoGeneralPct = Number(p.descuento_general ?? 0)
+    const descuentoGeneralMonto = calcDescuentoGeneral(subtotalBruto, descuentoGeneralPct)
+    const subtotal = subtotalBruto - descuentoGeneralMonto
+    return {
+      ...p,
+      subtotal,
+      gran_total: calcTotal(subtotal),
+    }
+  })
 }
 
 export async function getProjectById(id: string) {
@@ -40,7 +48,7 @@ export async function getProjectWithLineItems(id: string) {
       *,
       line_items (
         id, descripcion, referencia, dimensiones,
-        cantidad, precio_venta, created_at,
+        cantidad, precio_venta, descuento, created_at,
         line_item_costs (
           id, costo, supplier_id,
           suppliers ( id, nombre )
@@ -60,10 +68,10 @@ export async function getProjectForQuote(id: string): Promise<QuoteProjectData |
     .from('projects')
     .select(`
       id, nombre, cliente_nombre, numero_cotizacion,
-      fecha_cotizacion, salesperson, include_iva,
+      fecha_cotizacion, salesperson, include_iva, descuento_general,
       line_items (
         id, descripcion, referencia, cantidad,
-        precio_venta
+        precio_venta, descuento
       )
     `)
     .eq('id', id)
@@ -71,21 +79,25 @@ export async function getProjectForQuote(id: string): Promise<QuoteProjectData |
 
   if (error || !data) return null
 
-  // Map to QuoteLineItem using precio_venta directly (no formula calculation)
+  // Map to QuoteLineItem using precio_venta with per-item discount
   const lineItems: QuoteLineItem[] = (data.line_items ?? []).map(li => ({
     descripcion: li.descripcion,
     referencia: li.referencia,
     cantidad: li.cantidad,
     precioVenta: Number(li.precio_venta),
-    totalVenta: Number(li.precio_venta) * li.cantidad,
+    descuento: Number(li.descuento ?? 0),
+    totalVenta: Number(li.precio_venta) * (1 - Number(li.descuento ?? 0) / 100) * li.cantidad,
   }))
 
-  const subtotal = calcSubtotalFromPrecio(
-    (data.line_items ?? []).map(li => ({ precio_venta: Number(li.precio_venta), cantidad: li.cantidad }))
+  const subtotal = calcSubtotalFromPrecioWithDiscount(
+    (data.line_items ?? []).map(li => ({ precio_venta: Number(li.precio_venta), cantidad: li.cantidad, descuento: Number(li.descuento ?? 0) }))
   )
+  const descuentoGeneralPct = Number(data.descuento_general ?? 0)
+  const descuentoGeneralMonto = calcDescuentoGeneral(subtotal, descuentoGeneralPct)
+  const subtotalConDescuento = subtotal - descuentoGeneralMonto
   const includeIva = data.include_iva ?? true
-  const iva = includeIva ? calcIVA(subtotal) : 0
-  const granTotal = includeIva ? calcTotal(subtotal) : subtotal
+  const iva = includeIva ? calcIVA(subtotalConDescuento) : 0
+  const granTotal = includeIva ? calcTotal(subtotalConDescuento) : subtotalConDescuento
 
   return {
     id: data.id,
@@ -95,6 +107,8 @@ export async function getProjectForQuote(id: string): Promise<QuoteProjectData |
     fecha_cotizacion: data.fecha_cotizacion,
     salesperson: data.salesperson,
     subtotal,
+    descuentoGeneral: descuentoGeneralPct,
+    descuentoGeneralMonto,
     iva,
     granTotal,
     includeIva,

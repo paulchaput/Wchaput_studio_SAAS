@@ -5,7 +5,7 @@ import { getProjectWithLineItems } from '@/lib/queries/projects'
 import { getSuppliers } from '@/lib/queries/suppliers'
 import { getClientPayments, getSupplierPayments } from '@/lib/queries/payments'
 import { getChecklistTasks } from '@/lib/queries/checklist'
-import { calcSubtotalFromPrecio, calcTotal } from '@/lib/calculations'
+import { calcSubtotalFromPrecioWithDiscount, calcDescuentoGeneral, calcTotal } from '@/lib/calculations'
 import { formatFecha } from '@/lib/formatters'
 import { createClient } from '@/lib/supabase/server'
 import type { LineItem } from '@/lib/types'
@@ -52,10 +52,13 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
 
   const lineItems = (project.line_items ?? []) as LineItem[]
   const includeIva = project.include_iva ?? true
-  const subtotal = calcSubtotalFromPrecio(
-    lineItems.map((li: LineItem) => ({ precio_venta: Number(li.precio_venta), cantidad: li.cantidad }))
+  const subtotal = calcSubtotalFromPrecioWithDiscount(
+    lineItems.map((li: LineItem) => ({ precio_venta: Number(li.precio_venta), cantidad: li.cantidad, descuento: Number(li.descuento ?? 0) }))
   )
-  const granTotal = includeIva ? calcTotal(subtotal) : subtotal
+  const descuentoGeneralPct = Number(project.descuento_general ?? 0)
+  const descuentoGeneralMonto = calcDescuentoGeneral(subtotal, descuentoGeneralPct)
+  const subtotalConDescuento = subtotal - descuentoGeneralMonto
+  const granTotal = includeIva ? calcTotal(subtotalConDescuento) : subtotalConDescuento
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
@@ -113,7 +116,12 @@ export default async function ProyectoDetailPage({ params }: PageProps) {
       </div>
 
       {/* Financial Summary */}
-      <ProjectFinancialSummary lineItems={lineItems} includeIva={includeIva} />
+      <ProjectFinancialSummary
+        lineItems={lineItems}
+        includeIva={includeIva}
+        descuentoGeneral={descuentoGeneralPct}
+        descuentoGeneralMonto={descuentoGeneralMonto}
+      />
 
       <Separator />
 

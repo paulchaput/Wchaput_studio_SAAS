@@ -26,6 +26,7 @@ const updateProjectSchema = z.object({
   fecha_entrega_estimada: z.string().optional().nullable(),
   notas: z.string().optional().nullable(),
   include_iva: z.boolean().default(true),
+  descuento_general: z.coerce.number().min(0).max(100).default(0),
 })
 
 async function generateNumeroCotizacion(
@@ -113,6 +114,7 @@ export async function updateProjectAction(
     fecha_entrega_estimada: formData.get('fecha_entrega_estimada') as string || null,
     notas: formData.get('notas') as string || null,
     include_iva: formData.get('include_iva') === 'true',
+    descuento_general: formData.get('descuento_general') as string || '0',
   }
 
   const parsed = updateProjectSchema.safeParse(raw)

@@ -16,6 +16,7 @@ export interface QuoteLineItem {
   referencia: string | null
   cantidad: number
   precioVenta: number
+  descuento: number
   totalVenta: number
 }
 
@@ -27,6 +28,8 @@ export interface QuoteProjectData {
   fecha_cotizacion: string | null
   salesperson: string | null
   subtotal: number
+  descuentoGeneral: number
+  descuentoGeneralMonto: number
   iva: number
   granTotal: number
   includeIva: boolean
@@ -94,6 +97,9 @@ export function CotizacionTemplate({ project }: CotizacionTemplateProps) {
               {item.referencia && (
                 <Text style={{ fontSize: 7.5, color: '#6b7280', marginTop: 1 }}>{item.referencia}</Text>
               )}
+              {item.descuento > 0 && (
+                <Text style={{ fontSize: 7.5, color: '#d97706', marginTop: 1 }}>Descuento: {item.descuento}%</Text>
+              )}
             </View>
             <Text style={styles.colQty}>{item.cantidad}</Text>
             <Text style={styles.colPrice}>{formatMXN(item.precioVenta)}</Text>
@@ -103,21 +109,20 @@ export function CotizacionTemplate({ project }: CotizacionTemplateProps) {
 
         {/* Totals Block */}
         <View style={styles.totalsSection}>
-          {project.includeIva ? (
-            <>
-              <View style={styles.totalsRow}>
-                <Text style={styles.totalsLabel}>Subtotal</Text>
-                <Text style={styles.totalsValue}>{formatMXN(project.subtotal)}</Text>
-              </View>
-              <View style={styles.totalsRow}>
-                <Text style={styles.totalsLabel}>IVA 16%</Text>
-                <Text style={styles.totalsValue}>{formatMXN(project.iva)}</Text>
-              </View>
-            </>
-          ) : (
+          <View style={styles.totalsRow}>
+            <Text style={styles.totalsLabel}>Subtotal</Text>
+            <Text style={styles.totalsValue}>{formatMXN(project.subtotal)}</Text>
+          </View>
+          {project.descuentoGeneral > 0 && (
             <View style={styles.totalsRow}>
-              <Text style={styles.totalsLabel}>Subtotal</Text>
-              <Text style={styles.totalsValue}>{formatMXN(project.subtotal)}</Text>
+              <Text style={styles.totalsLabel}>Descuento ({project.descuentoGeneral}%)</Text>
+              <Text style={styles.totalsValue}>-{formatMXN(project.descuentoGeneralMonto)}</Text>
+            </View>
+          )}
+          {project.includeIva && (
+            <View style={styles.totalsRow}>
+              <Text style={styles.totalsLabel}>IVA 16%</Text>
+              <Text style={styles.totalsValue}>{formatMXN(project.iva)}</Text>
             </View>
           )}
           <View style={styles.grandTotalRow}>

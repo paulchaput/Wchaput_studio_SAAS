@@ -20,6 +20,7 @@ const projectFormSchema = z.object({
   salesperson: z.string().optional(),
   fecha_entrega_estimada: z.string().optional(),
   notas: z.string().optional(),
+  descuento_general: z.coerce.number().min(0).max(100).default(0),
 })
 
 type ProjectFormValues = z.infer<typeof projectFormSchema>
@@ -47,6 +48,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
       salesperson: project?.salesperson ?? '',
       fecha_entrega_estimada: project?.fecha_entrega_estimada ?? '',
       notas: project?.notas ?? '',
+      descuento_general: project?.descuento_general ?? 0,
     },
   })
 
@@ -56,10 +58,11 @@ export function ProjectForm({ project }: ProjectFormProps) {
     const formData = new FormData()
     Object.entries(values).forEach(([key, value]) => {
       if (value != null && value !== '') {
-        formData.append(key, value)
+        formData.append(key, String(value))
       }
     })
     formData.append('include_iva', String(includeIva))
+    formData.append('descuento_general', String(values.descuento_general))
 
     let result: { error?: string } | undefined
 
@@ -182,6 +185,24 @@ export function ProjectForm({ project }: ProjectFormProps) {
             }`}
           />
         </button>
+      </div>
+
+      {/* Descuento General */}
+      <div className="space-y-2">
+        <Label htmlFor="descuento_general">Descuento General %</Label>
+        <Input
+          id="descuento_general"
+          type="number"
+          min={0}
+          max={100}
+          step={0.01}
+          placeholder="0"
+          {...register('descuento_general')}
+          className="w-full"
+        />
+        <p className="text-xs text-muted-foreground">
+          Porcentaje de descuento aplicado al subtotal antes de IVA
+        </p>
       </div>
 
       {/* Notas Internas */}

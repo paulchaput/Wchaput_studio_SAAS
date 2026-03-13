@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
-import { calcSubtotalFromPrecio, calcTotal } from '@/lib/calculations'
+import { calcSubtotalFromPrecioWithDiscount, calcDescuentoGeneral, calcTotal } from '@/lib/calculations'
 
 const lineItemSchema = z.object({
   project_id: z.string().uuid(),
@@ -12,6 +12,7 @@ const lineItemSchema = z.object({
   dimensiones: z.string().optional(),
   cantidad: z.coerce.number().int().positive('La cantidad debe ser mayor a 0'),
   precio_venta: z.coerce.number().nonnegative('El precio de venta no puede ser negativo'),
+  descuento: z.coerce.number().min(0).max(100).default(0),
 })
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>
@@ -19,15 +20,24 @@ type SupabaseClient = Awaited<ReturnType<typeof createClient>>
 async function syncGranTotal(supabase: SupabaseClient, projectId: string): Promise<void> {
   const { data: items } = await supabase
     .from('line_items')
-    .select('precio_venta, cantidad')
+    .select('precio_venta, cantidad, descuento')
     .eq('project_id', projectId)
-  const subtotal = calcSubtotalFromPrecio(
+  const { data: project } = await supabase
+    .from('projects')
+    .select('descuento_general')
+    .eq('id', projectId)
+    .single()
+  const subtotal = calcSubtotalFromPrecioWithDiscount(
     (items ?? []).map(li => ({
       precio_venta: Number(li.precio_venta),
       cantidad: li.cantidad,
+      descuento: Number(li.descuento ?? 0),
     }))
   )
-  const granTotal = calcTotal(subtotal)
+  const descuentoGeneralPct = Number(project?.descuento_general ?? 0)
+  const descuentoGeneralMonto = calcDescuentoGeneral(subtotal, descuentoGeneralPct)
+  const subtotalConDescuento = subtotal - descuentoGeneralMonto
+  const granTotal = calcTotal(subtotalConDescuento)
   await supabase.from('projects').update({ gran_total: granTotal }).eq('id', projectId)
 }
 

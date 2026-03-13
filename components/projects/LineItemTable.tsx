@@ -46,7 +46,8 @@ export function LineItemTable({ lineItems, suppliers, projectId }: LineItemTable
             const totalCosto = totalCostoUnitario * item.cantidad
             const margenDecimal = calcMargenFromPrecio(item.precio_venta, totalCostoUnitario)
             const margenDisplay = (margenDecimal * 100).toFixed(1)
-            const totalVenta = item.precio_venta * item.cantidad
+            const descuento = Number(item.descuento ?? 0)
+            const totalVenta = item.precio_venta * (1 - descuento / 100) * item.cantidad
 
             return (
               <tr key={item.id} className="border-t hover:bg-muted/30 transition-colors">
@@ -55,7 +56,12 @@ export function LineItemTable({ lineItems, suppliers, projectId }: LineItemTable
                   {item.referencia ?? '—'}
                 </td>
                 <td className="px-3 py-2 text-right">{item.cantidad}</td>
-                <td className="px-3 py-2 text-right">{formatMXN(item.precio_venta)}</td>
+                <td className="px-3 py-2 text-right">
+                  {formatMXN(item.precio_venta)}
+                  {descuento > 0 && (
+                    <span className="ml-1 text-xs text-amber-600 font-medium">-{descuento}%</span>
+                  )}
+                </td>
                 <td className="px-3 py-2 text-right">{formatMXN(totalCosto)}</td>
                 <td className="px-3 py-2 text-right">{margenDisplay}%</td>
                 <td className="px-3 py-2 text-right font-medium">{formatMXN(totalVenta)}</td>
